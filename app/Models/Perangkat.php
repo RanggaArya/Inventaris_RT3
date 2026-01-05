@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Perangkat extends Model
 {
-  protected $table = 'alat_kesehatans';
+  protected $table = 'Perangkats';
 
   protected $fillable = [
     'lokasi_id',
@@ -21,7 +21,7 @@ class Perangkat extends Model
     'nama_perangkat',
     'merek_alat',
     'jumlah_alat',
-    'tipe_alat',
+    'tipe',
     'nomor_seri',
     'distributor',
     'supplier',

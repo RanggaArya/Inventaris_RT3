@@ -24,8 +24,9 @@ class RiwayatMaintenanceForm
       ->components([
         Select::make('perangkat_id')
           ->label('Perangkat (Kode Inv)')
-          ->relationship('alat_kesehatans', 'nomor_inventaris')
+          ->relationship('perangkats', 'nomor_inventaris')
           ->required()
+          ->preload()
           ->searchable()
           ->getSearchResultsUsing(function (string $query) {
             $q = Perangkat::query()
@@ -37,7 +38,7 @@ class RiwayatMaintenanceForm
             }
             return $q->limit(50)->pluck('nomor_inventaris', 'id')->toArray();
           })
-          ->getOptionLabelUsing(fn($value) => Perangkat::find($value)?->nama_jenis_alat)
+          ->getOptionLabelUsing(fn($value) => Perangkat::find($value)?->nama_perangkat)
           ->default(fn() => request()->query('perangkat_id'))
           ->disabled(fn() => request()->query('perangkat_id') !== null)
           ->dehydrated()

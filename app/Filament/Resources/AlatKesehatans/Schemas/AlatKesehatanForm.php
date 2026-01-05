@@ -26,26 +26,31 @@ class AlatKesehatanForm
                                 ->label('Lokasi')
                                 ->relationship('lokasi', 'nama_lokasi')
                                 ->searchable()
+                                ->preload()
                                 ->required(),
 
                             Select::make('kategori_id')
                                 ->label('Kategori Alat')
                                 ->relationship('kategori', 'nama_kategori')
                                 ->searchable()
+                                ->preload()
                                 ->required(),
 
-                            Select::make('jenis_perangkat_id')
+                            Select::make('jenis_id')
                                 ->label('Jenis Perangkat')
-                                ->relationship('jenisPerangkat', 'nama_jenis')
+                                ->preload()
+                                ->relationship('jenis', 'nama_jenis')
                                 ->searchable(),
 
                             Select::make('kondisi_id')
                                 ->label('Kondisi')
+                                ->preload()
                                 ->relationship('kondisi', 'nama_kondisi')
                                 ->searchable(),
 
                             Select::make('status_id')
                                 ->label('Status')
+                                ->preload()
                                 ->relationship('status', 'nama_status')
                                 ->searchable(),
 
@@ -70,7 +75,7 @@ class AlatKesehatanForm
                     Tab::make('Identitas Alat')
                         ->columns(3)
                         ->schema([
-                            TextInput::make('nama_jenis_alat')
+                            TextInput::make('nama_perangkat')
                                 ->label('Nama/Jenis Alat')
                                 ->required()
                                 ->maxLength(255),
@@ -86,7 +91,7 @@ class AlatKesehatanForm
                                 ->minValue(1)
                                 ->default(1),
 
-                            TextInput::make('tipe_alat')
+                            TextInput::make('tipe')
                                 ->label('Tipe Alat')
                                 ->maxLength(255),
 

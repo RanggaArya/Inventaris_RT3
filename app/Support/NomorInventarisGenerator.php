@@ -4,7 +4,7 @@ namespace App\Support;
 
 use App\Models\Jenis;
 use App\Models\Kategori;
-use App\Models\AlatKesehatan;
+use App\Models\Perangkat;
 use Illuminate\Support\Facades\DB;
 
 class NomorInventarisGenerator
@@ -34,7 +34,7 @@ class NomorInventarisGenerator
         $kodeKat   = str_pad(preg_replace('/\D+/', '', $kodeKat), 3, '0', STR_PAD_LEFT);
         $tahun     = (int) $tahun;
 
-        $tableName = (new AlatKesehatan())->getTable(); 
+        $tableName = (new Perangkat())->getTable(); 
 
         $base = "{$prefix}.{$kodeJenis}.{$kodeKat}.";
         $likeAllYears = $base . '%';

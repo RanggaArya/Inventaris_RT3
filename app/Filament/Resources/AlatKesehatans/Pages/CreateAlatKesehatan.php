@@ -13,7 +13,7 @@ class CreateAlatKesehatan extends CreateRecord
 
   protected function mutateFormDataBeforeCreate(array $data): array
   {
-    $jenisId = $data['jenis_perangkat_id'] ?? null;
+    $jenisId = $data['jenis_id'] ?? null;
     $kategoriId = $data['kategori_id'] ?? null;
     $tahun = $data['tahun_pembelian'] ?? date('Y');
 

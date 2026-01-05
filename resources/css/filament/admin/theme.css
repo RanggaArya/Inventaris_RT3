@@ -2,6 +2,8 @@
 
 @source "../../../../app/Filament/**/*";
 @source "../../../../resources/views/filament/**/*";
+@source "../../../../resources/views/infolists/**/*";
+@source "../../../views";
 
 /* @tailwind base;
 @tailwind components; */

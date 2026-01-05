@@ -17,11 +17,11 @@ class RiwayatMaintenancesTable
   {
     return $table
       ->columns([
-        TextColumn::make('alat_kesehatans.nomor_inventaris')
+        TextColumn::make('perangkats.nomor_inventaris')
           ->searchable()
           ->label('Nomor Inventaris'),
 
-        TextColumn::make('alat_kesehatans.nama_jenis_alat')
+        TextColumn::make('perangkats.nama_perangkat')
           ->label('Perangkat'),
 
         TextColumn::make('lokasi.nama_lokasi')
@@ -86,7 +86,7 @@ class RiwayatMaintenancesTable
       ->filters([
         SelectFilter::make('perangkat_id')
           ->label('Perangkat')
-          ->relationship('alat_kesehatans', 'nama_jenis_alat')
+          ->relationship('perangkats', 'nama_perangkat')
           ->multiple(),
 
         SelectFilter::make('lokasi_id')

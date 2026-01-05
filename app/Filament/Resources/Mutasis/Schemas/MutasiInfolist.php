@@ -11,10 +11,10 @@ class MutasiInfolist
     {
         return $schema
             ->components([
-                TextEntry::make('perangkat.id')
+                TextEntry::make('perangkat.nama_perangkat')
                     ->label('Perangkat')
                     ->placeholder('-'),
-                TextEntry::make('lokasiMutasi.id')
+                TextEntry::make('lokasiMutasi.nama_lokasi')
                     ->label('Lokasi mutasi')
                     ->placeholder('-'),
                 TextEntry::make('nama_perangkat')
@@ -23,10 +23,10 @@ class MutasiInfolist
                     ->placeholder('-'),
                 TextEntry::make('tipe')
                     ->placeholder('-'),
-                TextEntry::make('lokasiAsal.id')
+                TextEntry::make('lokasiAsal.nama_lokasi')
                     ->label('Lokasi asal')
                     ->placeholder('-'),
-                TextEntry::make('kondisi.id')
+                TextEntry::make('kondisi.nama_kondisi')
                     ->label('Kondisi')
                     ->placeholder('-'),
                 TextEntry::make('tanggal_mutasi')

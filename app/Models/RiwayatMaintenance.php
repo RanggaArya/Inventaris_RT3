@@ -27,7 +27,7 @@ class RiwayatMaintenance extends Model
     'foto' => 'array',
   ];
 
-  public function alat_kesehatans(): BelongsTo {
+  public function perangkats(): BelongsTo {
     return $this->belongsTo(Perangkat::class, 'perangkat_id');
   }
   public function user(): BelongsTo {

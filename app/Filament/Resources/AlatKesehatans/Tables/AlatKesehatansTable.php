@@ -21,11 +21,12 @@ class AlatKesehatansTable
             ->columns([
                 TextColumn::make('lokasi.nama_lokasi')->label('Lokasi')->searchable()->sortable(),
                 TextColumn::make('bulan')->sortable(),
+                TextColumn::make('jenis.nama_jenis')->label('Jenis'),
                 TextColumn::make('tanggal_entry')->date('d M Y')->sortable(),
 
-                TextColumn::make('nama_jenis_alat')->label('Nama/Jenis')->searchable(),
+                TextColumn::make('nama_perangkat')->label('Nama/Jenis')->searchable(),
                 TextColumn::make('merek_alat')->searchable(),
-                TextColumn::make('tipe_alat')->label('Tipe'),
+                TextColumn::make('tipe')->label('Tipe'),
                 TextColumn::make('nomor_seri')->label('No Seri')->searchable(),
 
                 TextColumn::make('jumlah_alat')->label('Jumlah')->sortable(),

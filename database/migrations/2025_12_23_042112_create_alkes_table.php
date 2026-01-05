@@ -50,7 +50,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['lokasi_id', 'nama_perangkat']);
-            $table->unique(['nomor_seri'], 'alat_kesehatans_nomor_seri_unique');
+            $table->unique(['nomor_seri'], 'perangkat_nomor_seri_unique');
         });
     }
 
