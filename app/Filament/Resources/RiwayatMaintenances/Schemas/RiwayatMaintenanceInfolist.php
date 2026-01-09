@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\RiwayatMaintenances\Schemas;
 
 use Filament\Schemas\Schema;
+use Filament\Infolists\Components\Entry; 
 
 class RiwayatMaintenanceInfolist
 {
@@ -10,7 +11,9 @@ class RiwayatMaintenanceInfolist
     {
         return $schema
             ->components([
-                //
+                Entry::make('detail_view')
+                    ->view('infolists.maintenance')
+                    ->columnSpanFull(),
             ]);
     }
 }

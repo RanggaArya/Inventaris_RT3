@@ -21,7 +21,7 @@ class RiwayatMaintenanceResource extends Resource
 {
   protected static ?string $model = RiwayatMaintenance::class;
 
-  protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+  protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-wrench-screwdriver';
   protected static string|UnitEnum|null $navigationGroup = 'Inventaris Alat';
   protected static ?string $modelLabel = 'Maintenance';
   protected static ?string $pluralModelLabel = 'Maintenance';

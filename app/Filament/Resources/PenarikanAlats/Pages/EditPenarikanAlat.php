@@ -7,6 +7,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
 use App\Models\Status;
+use Filament\Notifications\Notification;
 
 class EditPenarikanAlat extends EditRecord
 {
@@ -19,24 +20,58 @@ class EditPenarikanAlat extends EditRecord
       DeleteAction::make(),
     ];
   }
-  protected function afterSave(): void
-  {
-    $record = $this->record;
-    $perangkat = $record->perangkat;
-    if (!$perangkat) return;
+  protected function afterCreate(): void
+    {
+        // 1. Ambil Record
+        $record = $this->getRecord();
+        $perangkat = $record->perangkat;
 
-    $alasan = $record->alasan_penarikan ?? [];
-    $newStatusId = null;
+        if (!$perangkat) return;
 
-    if (in_array('Tidak Layak Pakai', $alasan) || in_array('Melebihi Masa Pakai', $alasan)) {
-      $newStatusId = Status::where('nama_status', 'Sudah tidak digunakan')->value('id');
-    } elseif (in_array('Rusak', $alasan)) {
-      $newStatusId = Status::where('nama_status', 'Rusak')->value('id');
+        $alasan = $record->alasan_penarikan ?? [];
+        $newStatusId = null;
+
+        // Normalisasi alasan menjadi huruf kecil untuk pengecekan
+        $alasanLower = array_map('strtolower', $alasan);
+
+        // 2. Logika Penentuan Status dengan 'firstOrCreate'
+        
+        // KASUS 1: Tidak Layak / Melebihi Masa Pakai -> Target: "Sudah tidak digunakan"
+        if (in_array('tidak layak pakai', $alasanLower) || in_array('melebihi masa pakai', $alasanLower)) {
+            
+            // "Cari status bernama 'Sudah tidak digunakan'. Jika belum ada, buatkan otomatis!"
+            $status = Status::firstOrCreate(
+                ['nama_status' => 'Sudah tidak digunakan'] 
+            );
+            
+            $newStatusId = $status->id;
+        } 
+        // KASUS 2: Rusak -> Target: "Rusak"
+        elseif (in_array('rusak', $alasanLower)) {
+            
+            // Kita cari 'Rusak'. Karena di DB Anda ada 'rusak' (kecil), 
+            // MySQL biasanya case-insensitive (Rusak = rusak).
+            // Tapi jika tidak ketemu, dia akan bikin 'Rusak' (Huruf Besar).
+            $status = Status::firstOrCreate(
+                ['nama_status' => 'Rusak']
+            );
+            
+            $newStatusId = $status->id;
+        }
+
+        // 3. Update Perangkat
+        if ($newStatusId) {
+            $perangkat->status_id = $newStatusId;
+            $perangkat->save();
+
+            // Opsional: Kirim notifikasi agar user tahu sistem membuat status baru/update
+            // Notification::make()
+            //     ->title('Status Perangkat Diupdate')
+            //     ->body("Perangkat kini berstatus: " . $status->nama_status)
+            //     ->success()
+            //     ->send();
+        }
     }
-    if ($newStatusId) {
-      $perangkat->update(['status_id' => $newStatusId]);
-    }
-  }
 
   protected function getRedirectUrl(): string
   {

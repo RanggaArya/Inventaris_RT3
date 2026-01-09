@@ -11,6 +11,7 @@ use App\Filament\Resources\PenarikanAlats\Schemas\PenarikanAlatInfolist;
 use App\Filament\Resources\PenarikanAlats\Tables\PenarikanAlatsTable;
 use App\Models\PenarikanAlat;
 use BackedEnum;
+use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -18,41 +19,42 @@ use Filament\Tables\Table;
 
 class PenarikanAlatResource extends Resource
 {
-    protected static ?string $model = PenarikanAlat::class;
+  protected static ?string $model = PenarikanAlat::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+  protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-inbox-arrow-down';
+  protected static string|UnitEnum|null $navigationGroup = 'Inventaris Alat';
 
-    protected static ?string $recordTitleAttribute = 'nama_perangkat';
+  protected static ?string $recordTitleAttribute = 'nama_perangkat';
 
-    public static function form(Schema $schema): Schema
-    {
-        return PenarikanAlatForm::configure($schema);
-    }
+  public static function form(Schema $schema): Schema
+  {
+    return PenarikanAlatForm::configure($schema);
+  }
 
-    public static function infolist(Schema $schema): Schema
-    {
-        return PenarikanAlatInfolist::configure($schema);
-    }
+  public static function infolist(Schema $schema): Schema
+  {
+    return PenarikanAlatInfolist::configure($schema);
+  }
 
-    public static function table(Table $table): Table
-    {
-        return PenarikanAlatsTable::configure($table);
-    }
+  public static function table(Table $table): Table
+  {
+    return PenarikanAlatsTable::configure($table);
+  }
 
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
-    }
+  public static function getRelations(): array
+  {
+    return [
+      //
+    ];
+  }
 
-    public static function getPages(): array
-    {
-        return [
-            'index' => ListPenarikanAlats::route('/'),
-            'create' => CreatePenarikanAlat::route('/create'),
-            'view' => ViewPenarikanAlat::route('/{record}'),
-            'edit' => EditPenarikanAlat::route('/{record}/edit'),
-        ];
-    }
+  public static function getPages(): array
+  {
+    return [
+      'index' => ListPenarikanAlats::route('/'),
+      'create' => CreatePenarikanAlat::route('/create'),
+      'view' => ViewPenarikanAlat::route('/{record}'),
+      'edit' => EditPenarikanAlat::route('/{record}/edit'),
+    ];
+  }
 }

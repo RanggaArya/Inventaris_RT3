@@ -5,75 +5,106 @@
 @source "../../../../resources/views/infolists/**/*";
 @source "../../../views";
 
-/* @tailwind base;
-@tailwind components; */
 @tailwind utilities;
 
-/* ===== Brand tokens ===== */
+/* ===== Variables Configuration ===== */
 :root {
-  --brand: 20 184 166;   /* teal */
-  --brand2: 59 130 246;  /* blue */
+    --brand: 20 184 166;   /* teal */
+    --brand2: 59 130 246;  /* blue */
+
+    /* Default (Light Mode) Variables */
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(0, 0, 0, 0.08);
+    --glass-blur: 18px;
+    --item-hover: rgba(0, 0, 0, 0.04);
+    --input-bg: rgba(0, 0, 0, 0.03);
+    --input-border: rgba(0, 0, 0, 0.1);
+    --card-shadow: 0 10px 30px rgba(0,0,0,0.08);
 }
 
-/* ===== Background aurora (panel) ===== */
+/* Dark Mode Overrides */
+.dark {
+    --glass-bg: rgba(10, 14, 24, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --item-hover: rgba(255, 255, 255, 0.05);
+    --input-bg: rgba(255, 255, 255, 0.04);
+    --input-border: rgba(255, 255, 255, 0.08);
+    --card-shadow: 0 18px 40px rgba(0,0,0,0.35);
+}
+
+/* ===== Background Aurora ===== */
 .fi-body {
-  background:
-    radial-gradient(1200px 600px at 20% -10%, rgba(20,184,166,.35), transparent 60%),
-    radial-gradient(900px 500px at 110% 20%, rgba(59,130,246,.30), transparent 55%),
-    radial-gradient(900px 700px at 30% 120%, rgba(34,197,94,.18), transparent 55%),
-    linear-gradient(180deg, #05070b 0%, #05070b 100%);
-  background-attachment: fixed;
+    /* Light Mode Background */
+    background:
+        radial-gradient(1000px 500px at 20% -10%, rgba(20,184,166,0.15), transparent 60%),
+        radial-gradient(800px 400px at 100% 20%, rgba(59,130,246,0.15), transparent 50%),
+        linear-gradient(180deg, #f3f4f6 0%, #ffffff 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
 }
 
-/* ===== Sidebar glass ===== */
+.dark .fi-body {
+    /* Dark Mode Background (Original) */
+    background:
+        radial-gradient(1200px 600px at 20% -10%, rgba(20,184,166,.35), transparent 60%),
+        radial-gradient(900px 500px at 110% 20%, rgba(59,130,246,.30), transparent 55%),
+        radial-gradient(900px 700px at 30% 120%, rgba(34,197,94,.18), transparent 55%),
+        linear-gradient(180deg, #05070b 0%, #05070b 100%);
+    background-attachment: fixed;
+}
+
+/* ===== Sidebar Glass ===== */
 .fi-sidebar {
-  background: rgba(10, 14, 24, 0.55) !important;
-  backdrop-filter: blur(18px);
-  border-right: 1px solid rgba(255,255,255,.06);
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(var(--glass-blur));
+    border-right: 1px solid var(--glass-border);
 }
 
 .fi-sidebar-header {
-  border-bottom: 1px solid rgba(255,255,255,.06);
+    border-bottom: 1px solid var(--glass-border);
 }
 
-/* Active nav */
+/* Active Nav */
 .fi-sidebar-item.fi-active > a {
-  background: rgba(var(--brand), .14) !important;
-  border: 1px solid rgba(var(--brand), .25) !important;
+    background: rgba(var(--brand), .14) !important;
+    border: 1px solid rgba(var(--brand), .25) !important;
 }
+
 .fi-sidebar-item > a:hover {
-  background: rgba(255,255,255,.05) !important;
+    background: var(--item-hover) !important;
 }
 
 /* ===== Topbar ===== */
 .fi-topbar {
-  background: rgba(10, 14, 24, 0.35) !important;
-  backdrop-filter: blur(18px);
-  border-bottom: 1px solid rgba(255,255,255,.06);
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(var(--glass-blur));
+    border-bottom: 1px solid var(--glass-border);
 }
 
 /* ===== Cards / Panels ===== */
 .fi-section,
 .fi-card {
-  background: rgba(10, 14, 24, 0.55) !important;
-  backdrop-filter: blur(18px);
-  border: 1px solid rgba(255,255,255,.06) !important;
-  border-radius: 18px !important;
-  box-shadow: 0 18px 40px rgba(0,0,0,.35);
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 18px !important;
+    box-shadow: var(--card-shadow);
 }
 
 /* ===== Tables ===== */
 .fi-ta-table {
-  border-radius: 18px !important;
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,.06);
+    border-radius: 18px !important;
+    overflow: hidden;
+    border: 1px solid var(--glass-border);
 }
+
 .fi-ta-header,
 .fi-ta-row {
-  background: transparent !important;
+    background: transparent !important;
 }
+
 .fi-ta-row:hover {
-  background: rgba(255,255,255,.04) !important;
+    background: var(--item-hover) !important;
 }
 
 /* ===== Inputs ===== */
@@ -81,34 +112,48 @@
 .fi-select-input,
 .fi-input-wrp,
 .fi-fo-file-upload-input-ctn {
-  border-radius: 14px !important;
-  background: rgba(255,255,255,.04) !important;
-  border-color: rgba(255,255,255,.08) !important;
+    border-radius: 14px !important;
+    background: var(--input-bg) !important;
+    border-color: var(--input-border) !important;
 }
+
 .fi-input:focus,
 .fi-select-input:focus {
-  outline: none !important;
-  border-color: rgba(var(--brand), .6) !important;
-  box-shadow: 0 0 0 4px rgba(var(--brand), .18) !important;
+    outline: none !important;
+    border-color: rgba(var(--brand), .6) !important;
+    box-shadow: 0 0 0 4px rgba(var(--brand), .18) !important;
 }
 
 /* ===== Buttons ===== */
 .fi-btn {
-  border-radius: 14px !important;
-  box-shadow: 0 12px 24px rgba(0,0,0,.25);
+    border-radius: 14px !important;
+    box-shadow: 0 10px 20px -5px rgba(0,0,0,0.15); /* Softer shadow for light mode */
 }
+
+/* Keep dark shadow stronger */
+.dark .fi-btn {
+    box-shadow: 0 12px 24px rgba(0,0,0,.25);
+}
+
 .fi-btn-color-primary {
-  background: linear-gradient(135deg,
-    rgba(var(--brand), 1),
-    rgba(var(--brand2), 1)
-  ) !important;
-  border: 0 !important;
+    background: linear-gradient(135deg,
+        rgba(var(--brand), 1),
+        rgba(var(--brand2), 1)
+    ) !important;
+    border: 0 !important;
+    color: white !important; /* Force white text for gradient button in light mode */
 }
+
 .fi-btn-color-primary:hover {
-  filter: brightness(1.05);
+    filter: brightness(1.05);
 }
 
 /* ===== Typography tweaks ===== */
 .fi-header-heading {
-  letter-spacing: -0.02em;
+    letter-spacing: -0.02em;
+}
+
+/* Fix text color visibility in tables for Light Mode if needed */
+.fi-ta-text-item {
+    color: inherit;
 }

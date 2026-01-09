@@ -26,6 +26,8 @@ class LokasiResource extends Resource
     protected static string|UnitEnum|null $navigationGroup = 'Data Master';
 
     protected static ?string $recordTitleAttribute = 'nama_lokasi';
+    protected static ?string $modelLabel = 'Lokasi Alat';
+  protected static ?string $pluralModelLabel = 'Lokasi Alat';
 
     public static function form(Schema $schema): Schema
     {

@@ -21,7 +21,7 @@ class MutasiResource extends Resource
 {
     protected static ?string $model = Mutasi::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-arrows-right-left';
     protected static string|UnitEnum|null $navigationGroup = 'Inventaris Alat';
     protected static ?string $modelLabel = 'Mutasi Alat';
   protected static ?string $pluralModelLabel = 'Mutasi Alat';

@@ -26,7 +26,7 @@
       --shadow2: 0 12px 40px rgba(2,6,23,.18);
       --text: rgba(2,6,23,.88);
       --muted: rgba(2,6,23,.60);
-      --accent: #8c7569; /* warna tema contoh kamu */
+      --accent: #8c7569;
       --accent2: #55311c;
       --radius: 22px;
     }
@@ -52,7 +52,6 @@
         linear-gradient(180deg, #070a12 0%, #0b1220 60%, #0f172a 100%);
     }
 
-    /* wrapper card ala modal */
     .auth-shell{
       width: min(1100px, 100%);
       border-radius: calc(var(--radius) + 8px);
@@ -70,7 +69,6 @@
       background: rgba(255,255,255,.03);
     }
 
-    /* kiri (gambar) = modal-right */
     .auth-hero{
       position: relative;
       min-height: 520px;
@@ -111,7 +109,6 @@
       color: rgba(255,255,255,.72);
     }
 
-    /* kanan (form) = modal-left */
     .auth-panel{
       background: var(--card);
       color: var(--text);
@@ -130,7 +127,6 @@
       color: rgba(255,255,255,.92);
     }
 
-    /* tombol theme */
     .theme-toggle{
       position:absolute;
       top: 16px;
@@ -152,7 +148,6 @@
       border-color: rgba(148,163,184,.18);
     }
 
-    /* Filament: bikin feel input-block */
     .fi-section, .fi-card, .fi-input-wrp, .fi-select-input,
     .fi-fo-file-upload-input-ctn, .fi-btn, .fi-icon-btn{
       border-radius: 14px !important;
@@ -173,7 +168,6 @@
       transform: translateY(-1px);
     }
 
-    /* Label Filament: kecil uppercase */
     .fi-fo-field-wrp-label,
     .fi-fo-field-wrp-label span{
       font-size: 11px !important;
@@ -187,7 +181,6 @@
       color: rgba(140,117,105,.90) !important;
     }
 
-    /* Button: feel input-button */
     .fi-btn{
       background: green !important;
       color: #000 !important;
@@ -201,7 +194,6 @@
       box-shadow: 0 24px 60px rgba(85,49,28,.32) !important;
     }
 
-    /* responsif */
     @media (max-width: 1024px){
       .auth-hero{ display:none; }
       .auth-panel{ border-left: 0; padding: 42px 26px; }
@@ -231,7 +223,6 @@
         </span>
       </button>
 
-      <!-- Left image -->
       <div class="auth-hero hidden lg:block lg:col-span-2">
         <img src="{{ asset('img/rsu.jpg') }}" alt="Hero">
         <div class="hero-caption">
@@ -240,7 +231,6 @@
         </div>
       </div>
 
-      <!-- Right form -->
       <div class="auth-panel lg:col-span-3 flex items-center justify-center">
         <div class="w-full max-w-md">
           {{ $slot }}

@@ -22,7 +22,7 @@ class AlatKesehatanResource extends Resource
 {
   protected static ?string $model = Perangkat::class;
 
-  protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+  protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-eye-dropper';
   protected static string|UnitEnum|null $navigationGroup = 'Inventaris Alat';
 
   protected static ?string $recordTitleAttribute = 'nama_perangkat';

@@ -12,11 +12,9 @@ class AlatKesehatanInfolist
     {
         return $schema
             ->components([
-                
-                // 3. Gunakan Entry::make() lalu chain dengan ->view()
-                Entry::make('detail_view') // Nama bebas, hanya identifier
-                    ->view('infolists.alat-kesehatan-detail') // Arahkan ke file blade Anda
-                    ->columnSpanFull(), // Penting: Agar tampilan memenuhi lebar container
+                Entry::make('detail_view')
+                    ->view('infolists.alat-kesehatan-detail')
+                    ->columnSpanFull(),
             ]);
     }
 }

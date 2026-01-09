@@ -24,6 +24,8 @@ class KondisiResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
     protected static string|UnitEnum|null $navigationGroup = 'Data Master';
+    protected static ?string $modelLabel = 'Kondisi Alat';
+  protected static ?string $pluralModelLabel = 'Kondisi Alat';
 
     protected static ?string $recordTitleAttribute = 'nama_kondisi';
 

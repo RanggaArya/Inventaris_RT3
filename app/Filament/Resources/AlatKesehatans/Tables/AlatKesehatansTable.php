@@ -11,6 +11,8 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Actions\Action;
+use App\Models\Perangkat;
 
 class AlatKesehatansTable
 {
@@ -48,6 +50,14 @@ class AlatKesehatansTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                Action::make('Cetak Stiker')
+                    ->icon('heroicon-o-printer')
+                    ->label('Stiker')
+                    ->url(
+                        fn(Perangkat $record): string =>
+                        route('cetak.satu.stiker', ['perangkat' => $record->id])
+                    )
+                    ->openUrlInNewTab(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

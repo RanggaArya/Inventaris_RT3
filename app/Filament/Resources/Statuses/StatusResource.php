@@ -26,6 +26,8 @@ class StatusResource extends Resource
     protected static string|UnitEnum|null $navigationGroup = 'Data Master';
 
     protected static ?string $recordTitleAttribute = 'nama_status';
+    protected static ?string $modelLabel = 'Status Alat';
+  protected static ?string $pluralModelLabel = 'Status Alat';
 
     public static function form(Schema $schema): Schema
     {

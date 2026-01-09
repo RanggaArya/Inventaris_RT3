@@ -4,10 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Builder;
 
 class Perangkat extends Model
 {
-  protected $table = 'Perangkats';
+  protected $table = 'perangkats';
 
   protected $fillable = [
     'lokasi_id',
@@ -62,4 +65,24 @@ class Perangkat extends Model
   {
     return $this->belongsTo(Status::class);
   }
+  public function riwayatMaintenances(): HasMany
+    {
+        return $this->hasMany(RiwayatMaintenance::class);
+    }
+    public function maintenanceTerakhir(): HasOne
+    {
+        return $this->hasOne(RiwayatMaintenance::class)->latestOfMany();
+    }
+    public function scopeAktif(Builder $q): Builder
+    {
+        return $q->whereHas('status', fn($qq) => $qq->where('nama_status', 'Aktif'));
+    }
+    public function scopePerbaikan(Builder $q): Builder
+    {
+        return $q->whereHas('status', fn($qq) => $qq->where('nama_status', 'Perbaikan'));
+    }
+    public function peminjamans()
+    {
+        return $this->hasMany(\App\Models\Peminjaman::class);
+    }
 }

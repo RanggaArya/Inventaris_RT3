@@ -1,0 +1,1 @@
+<style>.fi-sidebar-header { display: none; }</style><?php /**PATH E:\Magang\Inventaris AlKes\inventory-alkes\storage\framework\views/4f1f61791e9f0d203185aa47892c39b4.blade.php ENDPATH**/ ?>

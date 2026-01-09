@@ -19,23 +19,46 @@ class CreatePenarikanAlat extends CreateRecord
   }
 
   protected function afterCreate(): void
-  {
-    $record = $this->record;
-    $perangkat = $record->perangkat;
-    if (!$perangkat) return;
+    {
+        $record = $this->getRecord();
+        $perangkat = $record->perangkat;
 
-    $alasan = $record->alasan_penarikan ?? [];
-    $newStatusId = null;
+        if (!$perangkat) return;
 
-    if (in_array('Tidak Layak Pakai', $alasan) || in_array('Melebihi Masa Pakai', $alasan)) {
-      $newStatusId = Status::where('nama_status', 'Sudah tidak digunakan')->value('id');
-    } elseif (in_array('Rusak', $alasan)) {
-      $newStatusId = Status::where('nama_status', 'Rusak')->value('id');
+        $alasan = $record->alasan_penarikan ?? [];
+        $newStatusId = null;
+
+        $alasanLower = array_map('strtolower', $alasan);
+        
+        if (in_array('tidak layak pakai', $alasanLower) || in_array('melebihi masa pakai', $alasanLower)) {
+            
+            $status = Status::firstOrCreate(
+                ['nama_status' => 'Sudah tidak digunakan'] 
+            );
+            
+            $newStatusId = $status->id;
+        } 
+        elseif (in_array('rusak', $alasanLower)) {
+            
+            $status = Status::firstOrCreate(
+                ['nama_status' => 'Rusak']
+            );
+            
+            $newStatusId = $status->id;
+        }
+
+        if ($newStatusId) {
+            $perangkat->status_id = $newStatusId;
+            $perangkat->save();
+
+            // Opsional: Kirim notifikasi agar user tahu sistem membuat status baru/update
+            // Notification::make()
+            //     ->title('Status Perangkat Diupdate')
+            //     ->body("Perangkat kini berstatus: " . $status->nama_status)
+            //     ->success()
+            //     ->send();
+        }
     }
-    if ($newStatusId) {
-      $perangkat->update(['status_id' => $newStatusId]);
-    }
-  }
 
   protected function getRedirectUrl(): string
   {

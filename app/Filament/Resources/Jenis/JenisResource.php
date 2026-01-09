@@ -23,7 +23,8 @@ class JenisResource extends Resource
     protected static ?string $model = Jenis::class;
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
     protected static string|UnitEnum|null $navigationGroup = 'Data Master';
-    protected static ?string $modelLabel = 'Jenis Perangkat';
+    protected static ?string $modelLabel = 'Jenis Alat';
+  protected static ?string $pluralModelLabel = 'Jenis Alat';
 
     protected static ?string $recordTitleAttribute = 'nama_jenis';
 
