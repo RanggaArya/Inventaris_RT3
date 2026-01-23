@@ -120,7 +120,7 @@ trait MapsMaster
         return ($n === '' || in_array($n, $empty, true)) ? null : $n;
     }
 
-    protected function normalizeRowKeys(array $row): array
+    public function normalizeRowKeys(array $row): array
     {
         $out = [];
         foreach ($row as $k => $v) {

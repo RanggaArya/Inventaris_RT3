@@ -3,12 +3,13 @@
 namespace App\Filament\Pages;
 
 use App\Models\Perangkat;
-use App\Models\Jenis; // Pastikan model ini ada, atau ganti ke JenisPerangkat jika perlu
 use App\Models\Lokasi;
 use App\Models\Status;
 use App\Models\Kondisi;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Forms; 
+use Filament\Schemas;
+use Filament\Schemas\Schema;
+use Filament\Actions\Action; 
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Collection;
@@ -19,32 +20,28 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User as AppUser;
-use Illuminate\Database\Eloquent\Model;
-use App\Filament\Imports\Traits\MapsMaster;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Contracts\Support\Htmlable;
-use Filament\Actions\Action;
+use App\Filament\Imports\Traits\MapsMaster;
 use UnitEnum;
 
-class ImportPerangkat extends Page implements Forms\Contracts\HasForms
+class ImportPerangkat extends Page 
 {
-    use Forms\Concerns\InteractsWithForms;
-    use MapsMaster; // Logic mapping kolom Excel diambil dari Trait ini
+    use MapsMaster; 
 
-    // --- PERBAIKAN TIPE DATA (FIX FATAL ERROR) ---
-    // Tipe data harus sama persis dengan parent class Filament\Pages\Page
-    
-    protected static string | Htmlable | null $navigationIcon  = 'heroicon-o-arrow-up-tray';
-    protected static string | Htmlable | null $navigationLabel = 'Import Perangkat (Preview)';
-    protected static string | Htmlable | null $title           = 'Import Perangkat (Preview)';
-    protected static ?string $slug                             = 'perangkat/import-preview';
-    
-    // Ini yang menyebabkan error "must be UnitEnum|string|null":
-    protected static string | UnitEnum | null $navigationGroup = 'Manajemen Inventaris';
+    // --- KONFIGURASI HALAMAN ---
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-arrow-up-tray';
+    protected static ?string $navigationLabel = 'Import Perangkat (Preview)';
+    protected static ?string $title           = 'Import Perangkat (Preview)';
+    protected static ?string $slug            = 'perangkat/import-preview';
+    protected static \UnitEnum|string|null $navigationGroup = 'Manajemen Inventaris';
 
+    protected string $view = 'filament.pages.import-perangkat';
+
+    // --- PROPERTI LIVEWIRE ---
     public array $data = [
-        'file'   => null,
-        'policy' => 'skip',
+        'file'       => null,
+        'header_row' => 1, // Default header di baris 1
+        'policy'     => 'skip',
     ];
     public array $dupes = [];
     public int $totalRows = 0;
@@ -56,7 +53,6 @@ class ImportPerangkat extends Page implements Forms\Contracts\HasForms
     protected int $skippedDupes = 0;
 
     // --- ACCESS CONTROL ---
-    // Sesuaikan logic ini dengan sistem role/permission Anda
     public static function canAccess(): bool
     {
         $user = Auth::user();
@@ -70,13 +66,15 @@ class ImportPerangkat extends Page implements Forms\Contracts\HasForms
 
     public function mount(): void
     {
-        $this->bootMasterMaps(); // Load data mapping dari database via Trait
+        $this->bootMasterMaps();
+        $this->form->fill($this->data); 
     }
 
-    public function form(Form $form): Form
+    // --- FORM SCHEMA ---
+    public function form(Schema $form): Schema
     {
         return $form->schema([
-            Forms\Components\Section::make('Upload File')
+            Schemas\Components\Section::make('Upload File')
                 ->description('Unggah Excel, klik Scan untuk melihat duplikat sebelum import.')
                 ->schema([
                     Forms\Components\FileUpload::make('file')
@@ -87,7 +85,18 @@ class ImportPerangkat extends Page implements Forms\Contracts\HasForms
                         ])
                         ->directory('imports')
                         ->disk('public')
+                        ->required()
+                        ->columnSpan(2),
+                    
+                    // Input Baru: Menentukan posisi header
+                    Forms\Components\TextInput::make('header_row')
+                        ->label('Posisi Baris Header')
+                        ->helperText('Baris ke berapa judul kolom (No, Nama, Merk, dll) berada? Default: 1')
+                        ->numeric()
+                        ->default(1)
+                        ->minValue(1)
                         ->required(),
+
                     Forms\Components\Radio::make('policy')
                         ->label('Kebijakan saat duplikat')
                         ->options([
@@ -102,8 +111,9 @@ class ImportPerangkat extends Page implements Forms\Contracts\HasForms
                             }
                         })
                         ->inline(),
-                    Forms\Components\Actions::make([
-                        Forms\Components\Actions\Action::make('scan')
+
+                    Schemas\Components\Actions::make([
+                        Action::make('scan')
                             ->label('Scan File')
                             ->action('scanFile')
                             ->color('primary')
@@ -111,18 +121,18 @@ class ImportPerangkat extends Page implements Forms\Contracts\HasForms
                     ])->alignLeft(),
                 ])->columns(2),
 
-            Forms\Components\Section::make('Preview Isi File')
-                ->description('Cuplikan isi file setelah dinormalisasi header (maks. ' . $this->previewLimit . ' baris).')
+            Schemas\Components\Section::make('Preview Isi File')
+                ->description('Cuplikan isi file setelah dinormalisasi header.')
                 ->schema([
-                    Forms\Components\View::make('filament.import.preview-table')
+                    Schemas\Components\View::make('filament.import.preview-table')
                         ->visible(fn() => $this->scanToken !== null),
                 ])
                 ->visible(fn() => $this->scanToken !== null),
 
-            Forms\Components\Section::make('Preview Duplikat')
+            Schemas\Components\Section::make('Preview Duplikat')
                 ->description('Nomor inventaris yang sudah ada di database.')
                 ->schema([
-                    Forms\Components\View::make('filament.import.preview-summary')
+                    Schemas\Components\View::make('filament.import.preview-summary')
                         ->visible(fn() => $this->scanToken !== null),
 
                     Forms\Components\CheckboxList::make('selective')
@@ -136,8 +146,8 @@ class ImportPerangkat extends Page implements Forms\Contracts\HasForms
                         ->bulkToggleable(false)
                         ->visible(fn() => $this->scanToken !== null && ($this->data['policy'] ?? 'skip') === 'selective'),
 
-                    Forms\Components\Actions::make([
-                        Forms\Components\Actions\Action::make('run')
+                    Schemas\Components\Actions::make([
+                        Action::make('run')
                             ->label('Jalankan Import')
                             ->action('runImport')
                             ->color('success')
@@ -150,7 +160,7 @@ class ImportPerangkat extends Page implements Forms\Contracts\HasForms
         ])->statePath('data');
     }
 
-    protected static string $view = 'filament.pages.import-perangkat';
+    // --- LOGIC BACKEND ---
 
     public function scanFile(): void
     {
@@ -162,17 +172,27 @@ class ImportPerangkat extends Page implements Forms\Contracts\HasForms
 
         $this->data['policy'] = $state['policy'] ?? 'skip';
         $fullPath = Storage::disk('public')->path($state['file']);
+        $headerRow = (int) ($state['header_row'] ?? 1); // Ambil baris header dari input
 
-        // Anonymous class untuk membaca Excel
-        $collector = new class($this) implements ToCollection, WithHeadingRow {
+        // Anonymous Class dengan HeadingRow Dinamis
+        $collector = new class($this, $headerRow) implements ToCollection, WithHeadingRow {
             public array $rows = [];
-            public function __construct(private ImportPerangkat $page) {}
+            
+            public function __construct(
+                private ImportPerangkat $page,
+                private int $headerRow
+            ) {}
+
+            public function headingRow(): int
+            {
+                return $this->headerRow; // Set baris header sesuai input user
+            }
+
             public function collection(Collection $collection)
             {
                 foreach ($collection as $row) {
                     $raw = array_change_key_case($row->toArray(), CASE_LOWER);
-                    // PENTING: Gunakan method normalizeRowKeys dari TRAIT MapsMaster
-                    $raw = $this->page->normalizeRowKeys($raw);
+                    $raw = $this->page->normalizeRowKeys($raw); // Panggil Trait
                     $this->rows[] = $raw;
                 }
             }
@@ -188,7 +208,6 @@ class ImportPerangkat extends Page implements Forms\Contracts\HasForms
         $rows = $collector->rows;
         $this->totalRows = count($rows);
 
-        // Kumpulkan semua keys untuk Header Preview
         $allKeys = [];
         foreach ($rows as $r) {
             foreach (array_keys($r) as $k) {
@@ -196,30 +215,17 @@ class ImportPerangkat extends Page implements Forms\Contracts\HasForms
             }
         }
 
-        // List Kolom Prioritas (Sesuai Model Baru & Trait MapsMaster)
         $preferred = [
-            'nomor_inventaris',
-            'nama_perangkat', 
-            'jenis',
-            'lokasi',
-            'status',
-            'kondisi',
-            'kategori_excel',      
-            'kode_kategori_excel', 
-            'merek_alat',     
-            'sumber_pendanaan', 
-            'tahun_pengadaan',
-            'harga_beli',     
-            'keterangan',
-            'tanggal_pengadaan',
+            'nomor_inventaris', 'nama_perangkat', 'jenis', 'lokasi', 'status', 'kondisi',
+            'kategori_excel', 'kode_kategori_excel', 'merek_alat', 'sumber_pendanaan', 
+            'tahun_pengadaan', 'harga_beli', 'keterangan', 'tanggal_pengadaan',
         ];
         
         $others = array_values(array_diff(array_keys($allKeys), $preferred));
         $this->headers = array_values(array_unique(array_merge($preferred, $others)));
-
         $this->previewRows = array_slice($rows, 0, $this->previewLimit);
 
-        // Cek Duplikat di DB
+        // Cek Duplikat
         $numbers = [];
         foreach ($rows as $r) {
             $n = $this->normalizeNomor($r['nomor_inventaris'] ?? '');
@@ -238,13 +244,13 @@ class ImportPerangkat extends Page implements Forms\Contracts\HasForms
         $this->dupes = $exist;
         $this->data['selective'] = [];
 
-        // Cache hasil scan
         $this->scanToken = (string) Str::uuid();
         cache()->put("import_scan:{$this->scanToken}", [
-            'file'   => $state['file'],
-            'policy' => $this->data['policy'],
-            'dupes'  => $this->dupes,
-            'total'  => $this->totalRows,
+            'file'       => $state['file'],
+            'header_row' => $headerRow, // Simpan header_row di cache
+            'policy'     => $this->data['policy'],
+            'dupes'      => $this->dupes,
+            'total'      => $this->totalRows,
         ], now()->addMinutes(30));
 
         Notification::make()->title('Scan selesai')->success()->send();
@@ -258,17 +264,28 @@ class ImportPerangkat extends Page implements Forms\Contracts\HasForms
         }
         $scan = cache()->pull("import_scan:{$this->scanToken}");
         if (!$scan) {
-            Notification::make()->title('Sesi scan kedaluwarsa, scan ulang')->danger()->send();
+            Notification::make()->title('Sesi scan kedaluwarsa')->danger()->send();
             return;
         }
 
-        $filePath = Storage::disk('public')->path($scan['file']);
-        $policy   = $this->data['policy'] ?? 'skip';
+        $filePath  = Storage::disk('public')->path($scan['file']);
+        $policy    = $this->data['policy'] ?? 'skip';
+        $headerRow = (int) ($scan['header_row'] ?? 1); // Ambil header_row dari cache
 
-        // Baca ulang file (untuk memastikan data fresh)
-        $collector = new class($this) implements ToCollection, WithHeadingRow {
+        // Gunakan logic yang sama persis saat baca ulang untuk import
+        $collector = new class($this, $headerRow) implements ToCollection, WithHeadingRow {
             public array $rows = [];
-            public function __construct(private ImportPerangkat $page) {}
+            
+            public function __construct(
+                private ImportPerangkat $page,
+                private int $headerRow
+            ) {}
+
+            public function headingRow(): int
+            {
+                return $this->headerRow;
+            }
+
             public function collection(Collection $collection)
             {
                 foreach ($collection as $row) {
@@ -278,10 +295,16 @@ class ImportPerangkat extends Page implements Forms\Contracts\HasForms
                 }
             }
         };
-        Excel::import($collector, $filePath);
-        $rows = $collector->rows;
 
-        // Siapkan daftar Overwrite
+        try {
+            Excel::import($collector, $filePath);
+        } catch (\Exception $e) {
+            Notification::make()->title('Gagal membaca file')->body($e->getMessage())->danger()->send();
+            return;
+        }
+
+        $rows = $collector->rows;
+        
         $allowOverwrite = [];
         if ($policy === 'selective') {
             $allowOverwrite = collect($this->data['selective'] ?? [])
@@ -299,27 +322,24 @@ class ImportPerangkat extends Page implements Forms\Contracts\HasForms
         DB::beginTransaction();
         try {
             foreach ($rows as $row) {
-                // 1. Validasi Nama
                 $nama = trim((string) ($row['nama_perangkat'] ?? ''));
                 if ($nama === '') {
                     $this->skippedNoName++;
                     continue;
                 }
 
-                // 2. Validasi Nomor Inventaris
                 $nomor = $this->normalizeNomor($row['nomor_inventaris'] ?? null);
-
-                // 3. Resolve Master Data (Lokasi, Kondisi, Status)
+                
+                // --- RESOLVE MASTER DATA (Lokasi, Status, Kondisi) ---
+                // Menggunakan Trait normalizeRowKeys yang sudah di-public-kan
                 $lokasi_id  = $this->getOrCreateId($this->lokasiMap,  Lokasi::class,  'nama_lokasi',  $row['lokasi'] ?? null);
                 $status_id  = $this->getOrCreateId($this->statusMap,  Status::class,  'nama_status',  $row['status'] ?? 'Baik');
                 $kondisi_id = $this->getOrCreateId($this->kondisiMap, Kondisi::class, 'nama_kondisi', $row['kondisi'] ?? 'Baik');
 
-                // 4. Cleaning Data
                 $tahun = !empty($row['tahun_pengadaan']) ? (int)$row['tahun_pengadaan'] : (int) now()->year;
                 $harga = !empty($row['harga_beli']) ? (int)preg_replace('/\D+/', '', (string)$row['harga_beli']) : 0;
                 $tglPengadaan = $this->parseTanggal($row['tanggal_pengadaan'] ?? null);
                 
-                // 5. Resolve Kategori & Jenis (Via Trait)
                 $excelKodeKat = $row['kode_kategori_excel'] ?? null;
                 $kategoriObj  = $this->resolveKategoriByKodeAndName($excelKodeKat, $nama);
                 $kategori_id  = $kategoriObj ? $kategoriObj->id : null;
@@ -327,7 +347,6 @@ class ImportPerangkat extends Page implements Forms\Contracts\HasForms
                 $jenisObj = $this->resolveOrCreateJenisByName($row['jenis'] ?? 'Hardware');
                 $jenis_id = $jenisObj ? $jenisObj->id : null;
                 
-                // Logic Khusus: Jika Nomor Inventaris ada, cek apakah harus update Jenis/Kategori berdasarkan parsing NI
                 if ($nomor && ($parts = $this->parseNomorInventaris($nomor))) {
                     $tahun = $parts['tahun'];
                     if (!$jenis_id) {
@@ -338,10 +357,8 @@ class ImportPerangkat extends Page implements Forms\Contracts\HasForms
                     }
                 }
 
-                // 6. PROSES SIMPAN / UPDATE
                 if ($nomor !== null) {
                     $existing = Perangkat::where('nomor_inventaris', $nomor)->first();
-                    
                     if ($existing) {
                         $shouldUpdate = ($policy === 'overwrite') || 
                                         ($policy === 'selective' && in_array($nomor, $allowOverwrite, true));
@@ -369,7 +386,6 @@ class ImportPerangkat extends Page implements Forms\Contracts\HasForms
                     }
                 }
 
-                // 7. Insert Baru
                 Perangkat::create([
                     'nama_perangkat'    => $nama,
                     'merek_alat'        => $row['merek_alat'] ?? null,
@@ -384,7 +400,6 @@ class ImportPerangkat extends Page implements Forms\Contracts\HasForms
                     'status_id'         => $status_id,
                     'kondisi_id'        => $kondisi_id,
                     'kategori_id'       => $kategori_id,
-                    // 'created_by'     => auth()->id(),
                 ]);
                 $inserted++;
             }
@@ -402,8 +417,7 @@ class ImportPerangkat extends Page implements Forms\Contracts\HasForms
 
         Notification::make()->title('Import selesai')->body($msg)->success()->send();
 
-        // Reset Form
-        $this->data = ['file' => null, 'policy' => 'skip', 'selective' => []];
+        $this->data = ['file' => null, 'header_row' => 1, 'policy' => 'skip', 'selective' => []];
         $this->dupes = [];
         $this->totalRows = 0;
         $this->scanToken = null;
