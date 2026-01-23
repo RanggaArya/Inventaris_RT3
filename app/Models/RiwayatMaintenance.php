@@ -30,6 +30,9 @@ class RiwayatMaintenance extends Model
   public function perangkats(): BelongsTo {
     return $this->belongsTo(Perangkat::class, 'perangkat_id');
   }
+    public function perangkat(): BelongsTo {
+    return $this->belongsTo(Perangkat::class, 'perangkat_id');
+  }
   public function user(): BelongsTo {
     return $this->belongsTo(User::class);
   }

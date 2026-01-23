@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,39 +11,32 @@ use Illuminate\Database\Eloquent\Builder;
 
 class Perangkat extends Model
 {
+  use HasFactory;
   protected $table = 'perangkats';
 
   protected $fillable = [
-    'lokasi_id',
-    'kategori_id',
-    'jenis_id',
-    'kondisi_id',
-    'status_id',
-    'bulan',
-    'tanggal_entry',
-    'nomor_inventaris',
-    'nama_perangkat',
-    'merek_alat',
-    'jumlah_alat',
-    'tipe',
-    'nomor_seri',
-    'distributor',
-    'supplier',
-    'no_akl_akd',
-    'produk',
-    'tanggal_pembelian',
-    'tahun_pembelian',
-    'sumber_pendanaan',
-    'harga_beli_ppn',
-    'harga_beli_non_ppn',
-    'keterangan',
-    'created_by',
-    'updated_by',
+        'lokasi_id',
+        'nomor_inventaris',
+        'kategori_id',
+        'jenis_id',
+        'nama_perangkat',
+        'merek_alat',
+        'kondisi_id',
+        'tanggal_pengadaan',
+        'tanggal_supervisi',
+        'tahun_pengadaan',
+        'sumber_pendanaan',
+        'harga_beli',
+        'keterangan',
+        'status_id',
+        'created_by',
+        'updated_by',
   ];
 
   protected $casts = [
-    'tanggal_entry' => 'date',
-    'tanggal_pembelian' => 'date',
+        'tanggal_pengadaan' => 'date',
+        'tanggal_supervisi' => 'date',
+        'harga_beli' => 'integer',
   ];
 
   public function lokasi(): BelongsTo

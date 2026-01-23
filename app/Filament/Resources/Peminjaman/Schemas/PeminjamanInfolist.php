@@ -37,7 +37,7 @@ class PeminjamanInfolist
         ->schema([
           TextEntry::make('nomor_inventaris')->label('No. Inventaris')->placeholder('-'),
           TextEntry::make('nama_barang')->label('Nama Barang')->placeholder('-'),
-          TextEntry::make('merk')->label('Merk')->placeholder('-'),
+          TextEntry::make('merek')->label('Merek')->placeholder('-'),
           TextEntry::make('kondisi_terakhir')->label('Kondisi Terakhir')->placeholder('-'),
         ]),
 

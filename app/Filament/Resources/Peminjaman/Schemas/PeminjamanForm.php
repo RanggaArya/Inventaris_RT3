@@ -114,11 +114,11 @@ class PeminjamanForm
             ->getSearchResultsUsing(function (string $query) {
               return Perangkat::query()
                 ->with(['kondisi'])
-                ->select(['id', 'nomor_inventaris', 'nama_perangkat', 'tipe', 'kondisi_id'])
+                ->select(['id', 'nomor_inventaris', 'nama_perangkat', 'merek_alat', 'kondisi_id'])
                 ->when(trim($query) !== '', function ($q) use ($query) {
                   $q->where('nomor_inventaris', 'like', "%{$query}%")
                     ->orWhere('nama_perangkat', 'like', "%{$query}%")
-                    ->orWhere('tipe', 'like', "%{$query}%");
+                    ->orWhere('merek_alat', 'like', "%{$query}%");
                 })
                 ->orderBy('nomor_inventaris')
                 ->limit(50)
@@ -141,7 +141,7 @@ class PeminjamanForm
               if ($p) {
                 $set('nomor_inventaris',  $p->nomor_inventaris);
                 $set('nama_barang',       $p->nama_perangkat);
-                $set('merk',              $p->tipe);
+                $set('merek',              $p->merek_alat);
                 $set('kondisi_terakhir',  $p->kondisi?->nama_kondisi);
               } else {
                 $set('nomor_inventaris', null);
@@ -163,8 +163,8 @@ class PeminjamanForm
             ->disabled()
             ->dehydrated(),
 
-          TextInput::make('merk')
-            ->label('Merek / Tipe')
+          TextInput::make('merek')
+            ->label('Merek')
             ->disabled()
             ->dehydrated(),
 

@@ -14,7 +14,7 @@ class PengajuanMaintenance extends Model
     'lokasi_id',
     'keterangan',
     'nama_barang',
-    'merk',
+    'merek_alat',
   ];
 
   public function perangkats(): BelongsTo

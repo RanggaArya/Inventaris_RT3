@@ -23,7 +23,7 @@ class PengajuanMaintenanceNotification extends Notification
     return (new MailMessage)
       ->subject('✅ Pengajuan Maintenance')
       ->greeting("Halo Teknisi")
-      ->line("Pengajuan Maintenance untuk {$this->p->nama_barang} merek {$this->p->merk}")
+      ->line("Pengajuan Maintenance untuk {$this->p->nama_barang} merek {$this->p->merek_alat}")
       ->line("Keterangan {$this->p->keterangan}")
       ->line("Silakan menghubungi pihak terkait untuk menindaklanjuti");
   }
@@ -31,16 +31,19 @@ class PengajuanMaintenanceNotification extends Notification
   public function toTelegram($notifiable): TelegramMessage
   {
     $chatId = config('services.telegram_default_chat_id');
-    $lokasiName = $this->p->lokasi?->nama_lokasi ?? 'Pengguna';
+    $lokasiName = $this->p->lokasi?->nama_lokasi ?? '-';
+    $userName = $this->p->user?->name ?? '-';
+    $noInventaris = $this->p->perangkats?->nomor_inventaris ?? '-';
 
     return TelegramMessage::create()
       ->to($chatId)
       ->content(
-        "*Pengajuan Maintenance*\n\n" .
-          "Perangkat : *{$this->p->nama_barang}*\n" .
-          "Merek : *{$this->p->merk}*\n" .
-          "Lokasi  : {$lokasiName}\n" .
-          "Keterangan  : {$this->p->keterangan}\n"
+        "*Pengajuan Maintenance oleh : {$userName}*\n\n" .
+          "No. Inventaris : *{$noInventaris}*\n" .
+          "Perangkat       : *{$this->p->nama_barang}*\n" .
+          "Merek            : *{$this->p->merek_alat}*\n" .
+          "Lokasi            : {$lokasiName}\n" .
+          "Keterangan     : {$this->p->keterangan}\n"
       )
       ->options(['parse_mode' => 'Markdown']);
   }

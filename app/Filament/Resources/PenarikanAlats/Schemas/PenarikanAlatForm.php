@@ -35,10 +35,10 @@ class PenarikanAlatForm
             if ($perangkat) {
               $set('nama_perangkat', $perangkat->nama_perangkat);
               $set('nomor_inventaris', $perangkat->nomor_inventaris);
-              $set('tipe', $perangkat->tipe);
-              $set('spesifikasi', $perangkat->keterangan);
+              $set('merek', $perangkat->merek_alat);
+              // $set('spesifikasi', $perangkat->keterangan);
               $set('lokasi_id', $perangkat->lokasi_id);
-              $set('tahun_pembelian', $perangkat->tahun_pembelian);
+              $set('tahun_pengadaan', $perangkat->tahun_pengadaan);
             }
           }),
 
@@ -48,20 +48,20 @@ class PenarikanAlatForm
         TextInput::make('nomor_inventaris')
           ->label('No. Inventaris')
           ->disabled()->dehydrated(),
-        TextInput::make('tipe')
-          ->label('Tipe')
+        TextInput::make('merek')
+          ->label('Merek')
           ->disabled()->dehydrated(),
         Select::make('lokasi_id')
           ->label('Lokasi Terakhir')
           ->relationship('lokasi', 'nama_lokasi')
           ->disabled()->dehydrated(),
-        TextInput::make('tahun_pembelian')
-          ->label('Tahun Pembelian')
+        TextInput::make('tahun_pengadaan')
+          ->label('Tahun Pengadaan')
           ->disabled()->dehydrated(),
-        Textarea::make('spesifikasi')
-          ->label('Spesifikasi')
-          ->disabled()->dehydrated()
-          ->columnSpan('full'),
+        // Textarea::make('spesifikasi')
+        //   ->label('Spesifikasi')
+        //   ->disabled()->dehydrated()
+        //   ->columnSpan('full'),
 
         DatePicker::make('tanggal_penarikan')
           ->label('Tanggal Penarikan')
@@ -79,7 +79,7 @@ class PenarikanAlatForm
           ->columns(3),
 
         Textarea::make('alasan_lainnya')
-          ->label('Alasan Lainnya (jika ada)')
+          ->label('Alasan Lainnya (jika tidak ada isi dengan "-")')
           ->nullable()
           ->rows(2)
           ->columnSpan('full'),

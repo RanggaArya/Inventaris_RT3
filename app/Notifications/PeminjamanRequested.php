@@ -25,6 +25,6 @@ class PeminjamanRequested extends Notification
       ->line("Pemohon: {$this->p->pihak_kedua_nama}")
       ->line("Barang: {$this->p->nama_barang} ({$this->p->nomor_inventaris})")
       ->line("Periode: {$this->p->tanggal_mulai->format('d/m/Y')} - {$this->p->tanggal_selesai->format('d/m/Y')}")
-      ->action('Tinjau Pengajuan', url('/admin/peminjaman'));
+      ->action('Tinjau Pengajuan', url('/admin/peminjaman/peminjamen'));
   }
 }

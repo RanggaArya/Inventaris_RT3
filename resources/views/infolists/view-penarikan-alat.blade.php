@@ -1,17 +1,18 @@
 @php
-$record = $this->getRecord();
-// Pastikan alasan penarikan berupa array (jika disimpan sebagai JSON/cast)
-$alasan = $record->alasan_penarikan;
-if (!is_array($alasan)) {
-$alasan = json_decode($alasan, true) ?? [];
-}
+  $record = $this->getRecord();
+  // Pastikan alasan penarikan berupa array (jika disimpan sebagai JSON/cast)
+  $alasan = $record->alasan_penarikan;
+  if (!is_array($alasan)) {
+    $alasan = json_decode($alasan, true) ?? [];
+  }
 @endphp
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
   {{-- KOLOM KIRI: Informasi Perangkat (Asset Card) --}}
   <div class="col-span-1 space-y-6">
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 overflow-hidden relative">
+    <div
+      class="bg-white dark:bg-gray-900 rounded-xl shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 overflow-hidden relative">
 
       {{-- Decorative Header Background --}}
       <div class="h-24 bg-gradient-to-br from-primary-500 to-primary-700 relative">
@@ -39,8 +40,8 @@ $alasan = json_decode($alasan, true) ?? [];
           <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-lg">
             <x-heroicon-m-computer-desktop class="w-5 h-5 text-gray-400" />
             <div>
-              <p class="text-xs text-gray-500 uppercase font-semibold">Tipe</p>
-              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $record->tipe ?? '-' }}</p>
+              <p class="text-xs text-gray-500 uppercase font-semibold">Merek</p>
+              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $record->merek ?? '-' }}</p>
             </div>
           </div>
 
@@ -57,20 +58,11 @@ $alasan = json_decode($alasan, true) ?? [];
           <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-lg">
             <x-heroicon-m-calendar-days class="w-5 h-5 text-gray-400" />
             <div>
-              <p class="text-xs text-gray-500 uppercase font-semibold">Tahun Pembelian</p>
-              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $record->tahun_pembelian ?? '-' }}</p>
+              <p class="text-xs text-gray-500 uppercase font-semibold">Tahun Pengadaan</p>
+              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $record->tahun_pengadaan ?? '-' }}</p>
             </div>
           </div>
         </div>
-
-        @if($record->spesifikasi)
-        <div class="mt-6 border-t border-gray-100 dark:border-white/10 pt-4">
-          <p class="text-xs text-gray-500 uppercase font-semibold mb-2">Spesifikasi</p>
-          <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-            {{ $record->spesifikasi }}
-          </p>
-        </div>
-        @endif
       </div>
     </div>
   </div>
@@ -102,16 +94,13 @@ $alasan = json_decode($alasan, true) ?? [];
           <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Ditarik Oleh</label>
           <div class="mt-1 flex items-center gap-2">
             @php
-            $uName = $record->user->name ?? 'System';
-            $avatarSrc = $record->user->avatar_url
-            ? $record->user->avatar_url
-            : 'https://ui-avatars.com/api/?name=' . urlencode($uName) . '&color=FFFFFF&background=d97706&bold=true';
+              $uName = $record->user->name ?? 'System';
+              $avatarSrc = $record->user->avatar_url
+                ? $record->user->avatar_url
+                : 'https://ui-avatars.com/api/?name=' . urlencode($uName) . '&color=FFFFFF&background=d97706&bold=true';
             @endphp
 
-            <x-filament::avatar
-              src="{{ $avatarSrc }}"
-              size="xs"
-              class="ring-1 ring-gray-200 dark:ring-white/10" />
+            <x-filament::avatar src="{{ $avatarSrc }}" size="xs" class="ring-1 ring-gray-200 dark:ring-white/10" />
 
             <span class="text-base font-medium text-gray-900 dark:text-white">
               {{ $uName }}
@@ -123,26 +112,29 @@ $alasan = json_decode($alasan, true) ?? [];
           <label class="text-sm font-medium text-gray-500 dark:text-gray-400 block mb-2">Alasan Penarikan</label>
           <div class="flex flex-wrap gap-2">
             @forelse($alasan as $item)
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800">
-              {{ $item }}
-            </span>
+              <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800">
+                {{ $item }}
+              </span>
             @empty
-            <span class="text-sm text-gray-400 italic">Tidak ada alasan spesifik dipilih</span>
+              <span class="text-sm text-gray-400 italic">Tidak ada alasan spesifik dipilih</span>
             @endforelse
           </div>
         </div>
 
         @if($record->alasan_lainnya)
-        <div class="col-span-1 md:col-span-2 bg-gray-50 dark:bg-white/5 p-4 rounded-lg border border-gray-100 dark:border-white/5">
-          <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Catatan Tambahan</label>
-          <p class="text-sm text-gray-700 dark:text-gray-300 italic">"{{ $record->alasan_lainnya }}"</p>
-        </div>
+          <div
+            class="col-span-1 md:col-span-2 bg-gray-50 dark:bg-white/5 p-4 rounded-lg border border-gray-100 dark:border-white/5">
+            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Catatan Tambahan</label>
+            <p class="text-sm text-gray-700 dark:text-gray-300 italic">"{{ $record->alasan_lainnya }}"</p>
+          </div>
         @endif
       </div>
     </div>
 
     {{-- Card 2: Tindak Lanjut --}}
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 p-6 relative overflow-hidden">
+    <div
+      class="bg-white dark:bg-gray-900 rounded-xl shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 p-6 relative overflow-hidden">
       <div class="absolute top-0 right-0 p-4 opacity-10">
         <x-heroicon-o-arrow-path class="w-32 h-32 text-primary-500" />
       </div>
@@ -155,24 +147,27 @@ $alasan = json_decode($alasan, true) ?? [];
           <h3 class="text-lg font-bold text-gray-900 dark:text-white">Rekomendasi Tindak Lanjut</h3>
         </div>
 
-        <div class="bg-primary-50/50 dark:bg-primary-900/10 border border-primary-100 dark:border-primary-900/30 rounded-xl p-5">
+        <div
+          class="bg-primary-50/50 dark:bg-primary-900/10 border border-primary-100 dark:border-primary-900/30 rounded-xl p-5">
           <div class="flex flex-col md:flex-row gap-6 md:items-center">
             <div class="flex-shrink-0">
-              <span class="block text-xs font-medium text-primary-600 dark:text-primary-400 uppercase mb-1">Keputusan</span>
+              <span
+                class="block text-xs font-medium text-primary-600 dark:text-primary-400 uppercase mb-1">Keputusan</span>
               <span class="text-2xl font-bold text-primary-700 dark:text-primary-300">
                 {{ $record->tindak_lanjut_tipe }}
               </span>
             </div>
 
             @if($record->tindak_lanjut_detail)
-            <div class="hidden md:block w-px h-12 bg-primary-200 dark:bg-primary-800"></div>
+              <div class="hidden md:block w-px h-12 bg-primary-200 dark:bg-primary-800"></div>
 
-            <div class="flex-grow">
-              <span class="block text-xs font-medium text-primary-600 dark:text-primary-400 uppercase mb-1">Detail Eksekusi</span>
-              <p class="text-base text-gray-800 dark:text-gray-200">
-                {{ $record->tindak_lanjut_detail }}
-              </p>
-            </div>
+              <div class="flex-grow">
+                <span class="block text-xs font-medium text-primary-600 dark:text-primary-400 uppercase mb-1">Detail
+                  Eksekusi</span>
+                <p class="text-base text-gray-800 dark:text-gray-200">
+                  {{ $record->tindak_lanjut_detail }}
+                </p>
+              </div>
             @endif
           </div>
         </div>

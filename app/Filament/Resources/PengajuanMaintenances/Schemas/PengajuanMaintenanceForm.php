@@ -22,11 +22,11 @@ class PengajuanMaintenanceForm
           ->getSearchResultsUsing(function (string $query) {
             return Perangkat::query()
               ->with(['kondisi'])
-              ->select(['id', 'nomor_inventaris', 'nama_perangkat', 'tipe', 'kondisi_id'])
+              ->select(['id', 'nomor_inventaris', 'nama_perangkat', 'merek_alat', 'kondisi_id'])
               ->when(trim($query) !== '', function ($q) use ($query) {
                 $q->where('nomor_inventaris', 'like', "%{$query}%")
                   ->orWhere('nama_perangkat', 'like', "%{$query}%")
-                  ->orWhere('tipe', 'like', "%{$query}%");
+                  ->orWhere('merek_alat', 'like', "%{$query}%");
               })
               ->orderBy('nomor_inventaris')
               ->limit(50)
@@ -39,7 +39,7 @@ class PengajuanMaintenanceForm
           ->getOptionLabelUsing(function ($value) {
             $p = Perangkat::find($value);
             return $p
-              ? "{$p->nomor_inventaris} — {$p->nama_perangkat}" . ($p->tipe ? " ({$p->tipe})" : '')
+              ? "{$p->nomor_inventaris} — {$p->nama_perangkat}" . ($p->merek_alat ? " ({$p->merek_alat})" : '')
               : null;
           })
           ->reactive()
@@ -48,12 +48,12 @@ class PengajuanMaintenanceForm
             if ($p) {
               $set('nomor_inventaris',  $p->nomor_inventaris);
               $set('nama_barang',       $p->nama_perangkat);
-              $set('merk',              $p->tipe);
+              $set('merek_alat',        $p->merek_alat);
               $set('kondisi_terakhir',  $p->kondisi?->nama_kondisi);
             } else {
               $set('nomor_inventaris', null);
               $set('nama_barang',      null);
-              $set('merk',             null);
+              $set('merek_alat',       null);
               $set('kondisi_terakhir', null);
             }
             if (blank($state)) {
@@ -73,8 +73,8 @@ class PengajuanMaintenanceForm
           ->label('Nama barang')
           ->disabled()
           ->dehydrated(),
-        TextInput::make('merk')
-          ->label('Merek / Tipe')
+        TextInput::make('merek_alat')
+          ->label('Merek')
           ->disabled()
           ->dehydrated(),
 

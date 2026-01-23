@@ -32,8 +32,8 @@ class DatabaseSeeder extends Seeder
                 'password' => Hash::make('123456'),
             ],
             [
-                'name' => 'Azkal Super Admin',
-                'email' => 'askalaskia19@gmail.com',
+                'name' => 'Rangga Super Admin',
+                'email' => 'dinainggrid@gmail.com',
                 'role' => 'super-admin',
                 'jabatan' => 'Head of Application',
                 'unit' => 'SIRS',
@@ -50,8 +50,8 @@ class DatabaseSeeder extends Seeder
                 'password' => Hash::make('123456'),
             ],
             [
-                'name' => 'Azkal Admin',
-                'email' => 'azkalazkiya940@gmail.com',
+                'name' => 'Arya Admin',
+                'email' => 'ranggaaarya0110@gmail.com',
                 'role' => 'admin',
                 'jabatan' => 'Supervisor',
                 'unit' => 'Human Resources',
@@ -68,8 +68,8 @@ class DatabaseSeeder extends Seeder
                 'password' => Hash::make('123456'),
             ],
             [
-                'name' => 'Azkal User',
-                'email' => 'midoria580@gmail.com',
+                'name' => 'Pradana User',
+                'email' => 'ryzenhoks16@gmail.com',
                 'role' => 'user',
                 'jabatan' => 'Staff',
                 'unit' => 'Operational',
@@ -77,8 +77,8 @@ class DatabaseSeeder extends Seeder
                 'password' => Hash::make('123456'),
             ],
             [
-                'name' => 'Azkal Teknik',
-                'email' => 'kodepresensi@gmail.com',
+                'name' => 'Teknisi',
+                'email' => 'ryzenhoks9@gmail.com',
                 'role' => 'teknik',
                 'jabatan' => 'The Suhu of Teknik',
                 'unit' => 'Operational',
@@ -126,6 +126,11 @@ class DatabaseSeeder extends Seeder
                 'prefix' => 'B',
                 'kode_jenis' => '02.4'
             ],
+            [
+                'nama_jenis' => 'Rumah Tangga',
+                'prefix' => 'C',
+                'kode_jenis' => '03'
+            ],
         ];
 
         foreach ($jenis_perangkats as $jenis) {
@@ -134,8 +139,8 @@ class DatabaseSeeder extends Seeder
 
         // 5. DATA KATEGORI
         $kategoris = [
-            ['nama_kategori' => 'EKG', 'kode_kategori' => '009'],
-            ['nama_kategori' => 'Kursi Roda', 'kode_kategori' => '019'],
+            ['nama_kategori' => 'Ember', 'kode_kategori' => '009'],
+            ['nama_kategori' => 'Bed', 'kode_kategori' => '019'],
         ];
 
         foreach ($kategoris as $kategori) {
@@ -153,6 +158,5 @@ class DatabaseSeeder extends Seeder
         foreach ($kondisis as $kondisi) {
             Kondisi::create($kondisi);
         }
-        $this->call(PerangkatSeeder::class);
     }
 }

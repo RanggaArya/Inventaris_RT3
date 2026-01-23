@@ -15,7 +15,7 @@ return new class extends Migration
       $table->id();
       $table->foreignId('perangkat_id')->constrained('perangkats')->onDelete('cascade');
       $table->string('nama_barang');
-      $table->string('merk')->nullable();
+      $table->string('merek_alat')->nullable();
       $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
       $table->foreignId('lokasi_id')->nullable()->constrained('lokasis')->nullOnDelete();
       $table->string('keterangan');

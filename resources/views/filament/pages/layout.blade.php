@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#AA2B1D">
   <link rel="shortcut icon" href="{{ asset('img/RSU.png') }}" type="image/x-icon">
-  <title>{{ $pageTitle }}</title>
+  <title>Login | Simarut</title>
 
   @filamentStyles
   @livewireStyles
@@ -240,16 +240,14 @@
 </head>
 
 <body class="min-h-screen flex items-center justify-center px-4 md:px-10 py-10">
-  <div
-    x-data="{
+  <div x-data="{
       dark: localStorage.getItem('theme') === 'dark',
       toggleTheme() {
         this.dark = !this.dark;
         localStorage.setItem('theme', this.dark ? 'dark' : 'light');
         document.documentElement.classList.toggle('dark', this.dark);
       }
-    }"
-    x-init="document.documentElement.classList.toggle('dark', dark)"
+    }" x-init="document.documentElement.classList.toggle('dark', dark)"
     class="w-full flex items-center justify-center">
     <div class="auth-shell grid grid-cols-1 lg:grid-cols-5">
       <button @click="toggleTheme" class="theme-toggle" aria-label="Toggle theme">
@@ -263,8 +261,8 @@
       <div class="auth-hero hidden lg:block lg:col-span-2">
         <img src="{{ asset('img/rsu.jpg') }}" alt="Hero">
         <div class="hero-caption">
-          <div class="title">SIMAKES</div>
-          <div class="sub">Inventaris & Maintenance • Alat Kesehatan</div>
+          <div class="title">SIMARUT</div>
+          <div class="sub">Inventaris & Maintenance • Alat Rumah Tangga</div>
         </div>
       </div>
 

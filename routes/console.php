@@ -15,7 +15,7 @@ Schedule::command(SendPeminjamanH3Reminder::class)
     ->everyMinute()
     ->timezone('Asia/Jakarta')
     ->withoutOverlapping();
-Schedule::command(SendPeminjamanH7Reminder::class)
-    ->everyMinute()
-    ->timezone('Asia/Jakarta')
-    ->withoutOverlapping();
+// Schedule::command(SendPeminjamanH7Reminder::class)
+//     ->everyMinute()
+//     ->timezone('Asia/Jakarta')
+//     ->withoutOverlapping();

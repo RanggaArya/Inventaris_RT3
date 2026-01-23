@@ -16,10 +16,9 @@ return new class extends Migration
             $table->foreignId('perangkat_id')->nullable()->constrained('perangkats')->onDelete('set null');
             $table->string('nama_perangkat')->nullable();
             $table->string('nomor_inventaris')->nullable();
-            $table->string('tipe')->nullable();
-            $table->text('spesifikasi')->nullable();
+            $table->string('merek')->nullable();
             $table->foreignId('lokasi_id')->nullable()->constrained('lokasis')->onDelete('set null');
-            $table->integer('tahun_pembelian')->nullable();
+            $table->integer('tahun_pengadaan')->nullable();
 
             $table->date('tanggal_penarikan');
             $table->json('alasan_penarikan');
