@@ -1,3 +1,0 @@
-<svg x-show="$store.sidebar.isOpen" class="w-5 h-5 transition-transform duration-300 group-hover:-translate-x-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-  <path stroke-linecap="round" stroke-linejoin="round" d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5"/>
-</svg><?php /**PATH D:\Informatika V2\INVENTARIS MIPA\inventaris_rt3\storage\framework\views/3ff01431ab27d0e0c00f19ac72283a37.blade.php ENDPATH**/ ?>

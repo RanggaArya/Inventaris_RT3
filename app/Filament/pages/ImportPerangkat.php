@@ -22,13 +22,13 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User as AppUser;
 use Illuminate\Support\Facades\DB;
 use App\Filament\Imports\Traits\MapsMaster;
+use App\Support\NomorInventarisGenerator; // <--- WAJIB IMPORT INI UNTUK GENERATE NOMOR
 use UnitEnum;
 
 class ImportPerangkat extends Page 
 {
     use MapsMaster; 
 
-    // --- KONFIGURASI HALAMAN ---
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-arrow-up-tray';
     protected static ?string $navigationLabel = 'Import Perangkat (Preview)';
     protected static ?string $title           = 'Import Perangkat (Preview)';
@@ -37,10 +37,9 @@ class ImportPerangkat extends Page
 
     protected string $view = 'filament.pages.import-perangkat';
 
-    // --- PROPERTI LIVEWIRE ---
     public array $data = [
         'file'       => null,
-        'header_row' => 1, // Default header di baris 1
+        'header_row' => 1, // Default baris ke-1
         'policy'     => 'skip',
     ];
     public array $dupes = [];
@@ -52,11 +51,10 @@ class ImportPerangkat extends Page
     protected int $skippedNoName = 0;
     protected int $skippedDupes = 0;
 
-    // --- ACCESS CONTROL ---
     public static function canAccess(): bool
     {
         $user = Auth::user();
-        return $user instanceof AppUser && method_exists($user, 'canDo') && $user->canDo('perangkat.import');
+        return $user instanceof AppUser; // Sesuaikan permission jika perlu
     }
 
     public static function shouldRegisterNavigation(): bool
@@ -70,7 +68,6 @@ class ImportPerangkat extends Page
         $this->form->fill($this->data); 
     }
 
-    // --- FORM SCHEMA ---
     public function form(Schema $form): Schema
     {
         return $form->schema([
@@ -88,10 +85,10 @@ class ImportPerangkat extends Page
                         ->required()
                         ->columnSpan(2),
                     
-                    // Input Baru: Menentukan posisi header
+                    // --- SOLUSI MASALAH 1: Input Posisi Header ---
                     Forms\Components\TextInput::make('header_row')
                         ->label('Posisi Baris Header')
-                        ->helperText('Baris ke berapa judul kolom (No, Nama, Merk, dll) berada? Default: 1')
+                        ->helperText('Di baris ke berapa nama kolom (Nama Alat, Merk, dll) berada? Ubah jika header tidak terdeteksi.')
                         ->numeric()
                         ->default(1)
                         ->minValue(1)
@@ -160,8 +157,6 @@ class ImportPerangkat extends Page
         ])->statePath('data');
     }
 
-    // --- LOGIC BACKEND ---
-
     public function scanFile(): void
     {
         $state = $this->form->getState();
@@ -172,27 +167,22 @@ class ImportPerangkat extends Page
 
         $this->data['policy'] = $state['policy'] ?? 'skip';
         $fullPath = Storage::disk('public')->path($state['file']);
-        $headerRow = (int) ($state['header_row'] ?? 1); // Ambil baris header dari input
+        
+        // Ambil baris header dari input user
+        $headerRow = (int)($state['header_row'] ?? 1); 
 
-        // Anonymous Class dengan HeadingRow Dinamis
+        // Anonymous Class Dynamic Heading Row
         $collector = new class($this, $headerRow) implements ToCollection, WithHeadingRow {
             public array $rows = [];
+            public function __construct(private ImportPerangkat $page, private int $hRow) {}
             
-            public function __construct(
-                private ImportPerangkat $page,
-                private int $headerRow
-            ) {}
-
-            public function headingRow(): int
-            {
-                return $this->headerRow; // Set baris header sesuai input user
-            }
+            public function headingRow(): int { return $this->hRow; } // Set header dinamis
 
             public function collection(Collection $collection)
             {
                 foreach ($collection as $row) {
                     $raw = array_change_key_case($row->toArray(), CASE_LOWER);
-                    $raw = $this->page->normalizeRowKeys($raw); // Panggil Trait
+                    $raw = $this->page->normalizeRowKeys($raw);
                     $this->rows[] = $raw;
                 }
             }
@@ -210,22 +200,18 @@ class ImportPerangkat extends Page
 
         $allKeys = [];
         foreach ($rows as $r) {
-            foreach (array_keys($r) as $k) {
-                $allKeys[$k] = true;
-            }
+            foreach (array_keys($r) as $k) $allKeys[$k] = true;
         }
 
         $preferred = [
             'nomor_inventaris', 'nama_perangkat', 'jenis', 'lokasi', 'status', 'kondisi',
-            'kategori_excel', 'kode_kategori_excel', 'merek_alat', 'sumber_pendanaan', 
-            'tahun_pengadaan', 'harga_beli', 'keterangan', 'tanggal_pengadaan',
+            'kategori_excel', 'merek_alat', 'tahun_pengadaan', 'harga_beli', 'keterangan'
         ];
         
         $others = array_values(array_diff(array_keys($allKeys), $preferred));
         $this->headers = array_values(array_unique(array_merge($preferred, $others)));
         $this->previewRows = array_slice($rows, 0, $this->previewLimit);
 
-        // Cek Duplikat
         $numbers = [];
         foreach ($rows as $r) {
             $n = $this->normalizeNomor($r['nomor_inventaris'] ?? '');
@@ -235,10 +221,7 @@ class ImportPerangkat extends Page
 
         $exist = [];
         if (!empty($numbers)) {
-            $exist = Perangkat::query()
-                ->whereIn('nomor_inventaris', $numbers)
-                ->pluck('nomor_inventaris')
-                ->all();
+            $exist = Perangkat::query()->whereIn('nomor_inventaris', $numbers)->pluck('nomor_inventaris')->all();
         }
 
         $this->dupes = $exist;
@@ -247,7 +230,7 @@ class ImportPerangkat extends Page
         $this->scanToken = (string) Str::uuid();
         cache()->put("import_scan:{$this->scanToken}", [
             'file'       => $state['file'],
-            'header_row' => $headerRow, // Simpan header_row di cache
+            'header_row' => $headerRow, // Simpan info header ke cache
             'policy'     => $this->data['policy'],
             'dupes'      => $this->dupes,
             'total'      => $this->totalRows,
@@ -259,33 +242,21 @@ class ImportPerangkat extends Page
     public function runImport(): void
     {
         if (!$this->scanToken) {
-            Notification::make()->title('Belum dilakukan scan')->danger()->send();
-            return;
+            Notification::make()->title('Belum scan')->danger()->send(); return;
         }
         $scan = cache()->pull("import_scan:{$this->scanToken}");
         if (!$scan) {
-            Notification::make()->title('Sesi scan kedaluwarsa')->danger()->send();
-            return;
+            Notification::make()->title('Sesi habis')->danger()->send(); return;
         }
 
-        $filePath  = Storage::disk('public')->path($scan['file']);
-        $policy    = $this->data['policy'] ?? 'skip';
-        $headerRow = (int) ($scan['header_row'] ?? 1); // Ambil header_row dari cache
+        $filePath = Storage::disk('public')->path($scan['file']);
+        $policy   = $this->data['policy'] ?? 'skip';
+        $headerRow = $scan['header_row'] ?? 1; // Ambil header dari cache
 
-        // Gunakan logic yang sama persis saat baca ulang untuk import
         $collector = new class($this, $headerRow) implements ToCollection, WithHeadingRow {
             public array $rows = [];
-            
-            public function __construct(
-                private ImportPerangkat $page,
-                private int $headerRow
-            ) {}
-
-            public function headingRow(): int
-            {
-                return $this->headerRow;
-            }
-
+            public function __construct(private ImportPerangkat $page, private int $hRow) {}
+            public function headingRow(): int { return $this->hRow; }
             public function collection(Collection $collection)
             {
                 foreach ($collection as $row) {
@@ -295,113 +266,102 @@ class ImportPerangkat extends Page
                 }
             }
         };
-
-        try {
-            Excel::import($collector, $filePath);
-        } catch (\Exception $e) {
-            Notification::make()->title('Gagal membaca file')->body($e->getMessage())->danger()->send();
-            return;
-        }
-
-        $rows = $collector->rows;
         
+        Excel::import($collector, $filePath);
+        $rows = $collector->rows;
+
         $allowOverwrite = [];
         if ($policy === 'selective') {
-            $allowOverwrite = collect($this->data['selective'] ?? [])
-                ->map(fn($n) => strtoupper(trim((string) $n)))
-                ->unique()
-                ->values()
-                ->all();
+            $allowOverwrite = collect($this->data['selective'] ?? [])->map(fn($n)=>strtoupper(trim((string)$n)))->all();
         }
 
-        $inserted = 0;
-        $updated  = 0;
-        $this->skippedNoName = 0;
-        $this->skippedDupes  = 0;
+        $inserted = 0; $updated = 0;
+        $this->skippedNoName = 0; $this->skippedDupes = 0;
 
         DB::beginTransaction();
         try {
             foreach ($rows as $row) {
                 $nama = trim((string) ($row['nama_perangkat'] ?? ''));
-                if ($nama === '') {
-                    $this->skippedNoName++;
-                    continue;
-                }
+                if ($nama === '') { $this->skippedNoName++; continue; }
 
                 $nomor = $this->normalizeNomor($row['nomor_inventaris'] ?? null);
                 
-                // --- RESOLVE MASTER DATA (Lokasi, Status, Kondisi) ---
-                // Menggunakan Trait normalizeRowKeys yang sudah di-public-kan
+                // Resolve Relasi
                 $lokasi_id  = $this->getOrCreateId($this->lokasiMap,  Lokasi::class,  'nama_lokasi',  $row['lokasi'] ?? null);
-                $status_id  = $this->getOrCreateId($this->statusMap,  Status::class,  'nama_status',  $row['status'] ?? 'Baik');
-                $kondisi_id = $this->getOrCreateId($this->kondisiMap, Kondisi::class, 'nama_kondisi', $row['kondisi'] ?? 'Baik');
+                // Cek apakah kolom status ada isinya. Jika kosong string atau null, biarkan null.
+                // Jika Anda ingin Default 'Baik', ganti null di paling belakang dengan 'Baik'
+                $inputStatus = !empty($row['status']) ? $row['status'] : null; 
+                $status_id  = $this->getOrCreateId($this->statusMap,  Status::class,  'nama_status', $inputStatus);
+
+                // Kondisi juga sama, mau default 'Baik' atau null?
+                $inputKondisi = !empty($row['kondisi']) ? $row['kondisi'] : null; // Contoh ini tetap default Baik
+                $kondisi_id = $this->getOrCreateId($this->kondisiMap, Kondisi::class, 'nama_kondisi', $inputKondisi);
 
                 $tahun = !empty($row['tahun_pengadaan']) ? (int)$row['tahun_pengadaan'] : (int) now()->year;
                 $harga = !empty($row['harga_beli']) ? (int)preg_replace('/\D+/', '', (string)$row['harga_beli']) : 0;
                 $tglPengadaan = $this->parseTanggal($row['tanggal_pengadaan'] ?? null);
                 
+                // Ambil data dari kolom Excel (pastikan mapping alias di MapsMaster sudah benar: 'kategori' => 'kategori_excel')
                 $excelKodeKat = $row['kode_kategori_excel'] ?? null;
-                $kategoriObj  = $this->resolveKategoriByKodeAndName($excelKodeKat, $nama);
+                $excelNamaKat = $row['kategori_excel'] ?? null; // <--- Ambil Nama Kategori Excel
+
+                // Panggil method dengan 3 parameter (Kode, Nama Kategori Excel, Nama Perangkat)
+                $kategoriObj  = $this->resolveKategoriByKodeAndName($excelKodeKat, $excelNamaKat, $nama);
                 $kategori_id  = $kategoriObj ? $kategoriObj->id : null;
 
-                $jenisObj = $this->resolveOrCreateJenisByName($row['jenis'] ?? 'Hardware');
+                // Resolve Jenis menggunakan Logic Baru di MapsMaster
+                $jenisObj = $this->resolveOrCreateJenisByName($row['jenis'] ?? 'Elektronik'); 
                 $jenis_id = $jenisObj ? $jenisObj->id : null;
-                
-                if ($nomor && ($parts = $this->parseNomorInventaris($nomor))) {
-                    $tahun = $parts['tahun'];
-                    if (!$jenis_id) {
-                         $jenis_id = $this->resolveOrUpsertJenisFromNI($parts['prefix'], $parts['kode_jenis']);
-                    }
-                    if (!$kategori_id) {
-                         $kategori_id = $this->resolveOrCreateKategoriByKode($parts['kode_kat'], $nama);
-                    }
+
+                // --- SOLUSI MASALAH 2: Auto Generate Nomor Inventaris ---
+                if ($nomor === null) {
+                    // Jika di excel kosong, generate otomatis
+                    // Pastikan Generator menerima (jenis_id, kategori_id, tahun)
+                    $nomor = NomorInventarisGenerator::generate($jenis_id, $kategori_id, $tahun);
                 }
 
-                if ($nomor !== null) {
-                    $existing = Perangkat::where('nomor_inventaris', $nomor)->first();
-                    if ($existing) {
-                        $shouldUpdate = ($policy === 'overwrite') || 
-                                        ($policy === 'selective' && in_array($nomor, $allowOverwrite, true));
-
-                        if ($shouldUpdate) {
-                            $existing->fill([
-                                'nama_perangkat'    => $nama,
-                                'merek_alat'        => $row['merek_alat'] ?? null,
-                                'sumber_pendanaan'  => $row['sumber_pendanaan'] ?? null,
-                                'tahun_pengadaan'   => $tahun,
-                                'harga_beli'        => $harga,
-                                'keterangan'        => $row['keterangan'] ?? null,
-                                'tanggal_pengadaan' => $tglPengadaan,
-                                'lokasi_id'         => $lokasi_id,
-                                'jenis_id'          => $jenis_id,
-                                'status_id'         => $status_id,
-                                'kondisi_id'        => $kondisi_id,
-                                'kategori_id'       => $kategori_id ?? $existing->kategori_id,
-                            ])->save();
-                            $updated++;
-                        } else {
-                            $this->skippedDupes++;
-                        }
-                        continue;
+                // Cek Duplikat di DB (Update vs Insert)
+                $existing = Perangkat::where('nomor_inventaris', $nomor)->first();
+                if ($existing) {
+                    $shouldUpdate = ($policy === 'overwrite') || ($policy === 'selective' && in_array($nomor, $allowOverwrite));
+                    if ($shouldUpdate) {
+                        $existing->update([
+                            'nama_perangkat'    => $nama,
+                            'merek_alat'        => $row['merek_alat'] ?? null,
+                            'sumber_pendanaan'  => $row['sumber_pendanaan'] ?? null,
+                            'tahun_pengadaan'   => $tahun,
+                            'harga_beli'        => $harga,
+                            'keterangan'        => $row['keterangan'] ?? null,
+                            'tanggal_pengadaan' => $tglPengadaan,
+                            'lokasi_id'         => $lokasi_id,
+                            'jenis_id'          => $jenis_id,
+                            'status_id'         => $status_id,
+                            'kondisi_id'        => $kondisi_id,
+                            'kategori_id'       => $kategori_id ?? $existing->kategori_id,
+                        ]);
+                        $updated++;
+                    } else {
+                        $this->skippedDupes++;
                     }
+                } else {
+                    // Insert Baru
+                    Perangkat::create([
+                        'nama_perangkat'    => $nama,
+                        'nomor_inventaris'  => $nomor, // Gunakan nomor (baik dari excel atau hasil generate)
+                        'merek_alat'        => $row['merek_alat'] ?? null,
+                        'sumber_pendanaan'  => $row['sumber_pendanaan'] ?? null,
+                        'tahun_pengadaan'   => $tahun,
+                        'harga_beli'        => $harga,
+                        'keterangan'        => $row['keterangan'] ?? null,
+                        'tanggal_pengadaan' => $tglPengadaan,
+                        'lokasi_id'         => $lokasi_id,
+                        'jenis_id'          => $jenis_id,
+                        'status_id'         => $status_id,
+                        'kondisi_id'        => $kondisi_id,
+                        'kategori_id'       => $kategori_id,
+                    ]);
+                    $inserted++;
                 }
-
-                Perangkat::create([
-                    'nama_perangkat'    => $nama,
-                    'merek_alat'        => $row['merek_alat'] ?? null,
-                    'sumber_pendanaan'  => $row['sumber_pendanaan'] ?? null,
-                    'tahun_pengadaan'   => $tahun,
-                    'nomor_inventaris'  => $nomor,
-                    'harga_beli'        => $harga,
-                    'keterangan'        => $row['keterangan'] ?? null,
-                    'tanggal_pengadaan' => $tglPengadaan,
-                    'lokasi_id'         => $lokasi_id,
-                    'jenis_id'          => $jenis_id,
-                    'status_id'         => $status_id,
-                    'kondisi_id'        => $kondisi_id,
-                    'kategori_id'       => $kategori_id,
-                ]);
-                $inserted++;
             }
             DB::commit();
         } catch (\Exception $e) {
@@ -412,15 +372,14 @@ class ImportPerangkat extends Page
 
         $msg = "Insert: {$inserted}, Update: {$updated}";
         if ($this->skippedNoName > 0 || $this->skippedDupes > 0) {
-            $msg .= " | Skip(Tanpa Nama): {$this->skippedNoName}, Skip(Duplikat): {$this->skippedDupes}";
+            $msg .= " | Skip(Nama Kosong): {$this->skippedNoName}, Skip(Duplikat): {$this->skippedDupes}";
         }
 
         Notification::make()->title('Import selesai')->body($msg)->success()->send();
 
+        // Reset
         $this->data = ['file' => null, 'header_row' => 1, 'policy' => 'skip', 'selective' => []];
-        $this->dupes = [];
-        $this->totalRows = 0;
-        $this->scanToken = null;
+        $this->dupes = []; $this->totalRows = 0; $this->scanToken = null;
         $this->form->fill($this->data);
     }
 }

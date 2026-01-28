@@ -110,6 +110,10 @@ class AlatRumahTanggaTable
                 SelectFilter::make('tahun_pengadaan')
                     ->options(fn() => Perangkat::select('tahun_pengadaan')->distinct()->pluck('tahun_pengadaan', 'tahun_pengadaan')->toArray())
                     ->label('Tahun'),
+
+                SelectFilter::make('jenis_id')
+                    ->relationship('jenis', 'nama_jenis')
+                    ->label('Jenis'),
             ])
             ->recordActions([
                 ViewAction::make(),

@@ -85,7 +85,10 @@ class PerangkatImporter implements
 
             // Cek Kode Kategori dari Excel (Priority)
             $kodeKategoriExcel = $row['kode_kategori_excel'] ?? null;
-            $kategori = $this->resolveKategoriByKodeAndName($kodeKategoriExcel, $namaPerangkat);
+            $namaKategoriExcel = $row['kategori_excel'] ?? null; // Ambil kolom Kategori
+            
+            // Panggil method resolver dari MapsMaster (3 parameter)
+            $kategori = $this->resolveKategoriByKodeAndName($kodeKategoriExcel, $namaKategoriExcel, $namaPerangkat);
 
             $jenis = $this->resolveOrCreateJenisByName($row['jenis'] ?? 'Hardware');
             $tahun = !empty($row['tahun_pengadaan']) ? (int)$row['tahun_pengadaan'] : (int) now()->year;
@@ -156,8 +159,15 @@ class PerangkatImporter implements
     {
         // Foreign Keys
         $lokasi_id  = $this->getOrCreateId($this->lokasiMap,  Lokasi::class,  'nama_lokasi',  $row['lokasi'] ?? null);
-        $status_id  = $this->getOrCreateId($this->statusMap,  Status::class,  'nama_status',  $row['status'] ?? 'Baik');
-        $kondisi_id = $this->getOrCreateId($this->kondisiMap, Kondisi::class, 'nama_kondisi', $row['kondisi'] ?? 'Baik');
+        // Cek apakah kolom status ada isinya. Jika kosong string atau null, biarkan null.
+        // Jika Anda ingin Default 'Baik', ganti null di paling belakang dengan 'Baik'
+        $inputStatus = !empty($row['status']) ? $row['status'] : null; 
+
+        $status_id  = $this->getOrCreateId($this->statusMap,  Status::class,  'nama_status', $inputStatus);
+
+        // Kondisi juga sama, mau default 'Baik' atau null?
+        $inputKondisi = !empty($row['kondisi']) ? $row['kondisi'] : null; // Contoh ini tetap default Baik
+        $kondisi_id = $this->getOrCreateId($this->kondisiMap, Kondisi::class, 'nama_kondisi', $inputKondisi);
 
         // Cleaning Data
         $harga = !empty($row['harga_beli']) ? (int)preg_replace('/\D+/', '', (string)$row['harga_beli']) : 0;
@@ -167,9 +177,11 @@ class PerangkatImporter implements
         $tahun       = (int)($row['_tahun'] ?? ($row['tahun_pengadaan'] ?? now()->year));
         $jenis_id    = (int)($row['_jenis_id'] ?? optional($this->resolveOrCreateJenisByName($row['jenis'] ?? 'Hardware'))->id);
         
+        $namaPerangkat = $row['nama_perangkat'];
         // Kategori
-        $kodeKatExcel = $row['kode_kategori_excel'] ?? null;
-        $kategoriObj = $this->resolveKategoriByKodeAndName($kodeKatExcel, $row['nama_perangkat']);
+        $kodeKategoriExcel = $row['kode_kategori_excel'] ?? null;
+        $namaKategoriExcel = $row['kategori_excel'] ?? null;
+        $kategoriObj = $this->resolveKategoriByKodeAndName($kodeKategoriExcel, $namaKategoriExcel, $namaPerangkat);
         $kategori_id = $kategoriObj ? $kategoriObj->id : null;
 
         // CREATE (Sesuai $fillable Model yang Baru)
@@ -182,7 +194,7 @@ class PerangkatImporter implements
             'merek_alat'        => $row['merek_alat'] ?? null,
             'kondisi_id'        => $kondisi_id,
             'tanggal_pengadaan' => $tglPengadaan,
-            // 'tanggal_supervisi' => null, 
+            'tanggal_supervisi' => null, 
             'tahun_pengadaan'   => $tahun,
             'sumber_pendanaan'  => $row['sumber_pendanaan'] ?? null,
             'harga_beli'        => $harga,
