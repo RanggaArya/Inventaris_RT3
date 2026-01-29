@@ -23,7 +23,6 @@ class CreateMutasi extends CreateRecord
             'perangkat_id' => $perangkat->id,
             'nama_perangkat' => $perangkat->nama_perangkat,
             'nomor_inventaris' => $perangkat->nomor_inventaris,
-            'tipe' => $perangkat->tipe,
             'kondisi_id' => $perangkat->kondisi_id,
             'lokasi_asal_id' => $perangkat->lokasi_id,
           ]);

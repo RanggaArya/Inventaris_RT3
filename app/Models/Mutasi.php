@@ -15,7 +15,6 @@ class Mutasi extends Model
         'lokasi_mutasi_id',
         'nama_perangkat',
         'nomor_inventaris',
-        'tipe',
         'lokasi_asal_id',
         'kondisi_id',
         'tanggal_mutasi',

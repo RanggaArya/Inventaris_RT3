@@ -31,7 +31,6 @@ class MutasiForm
                         if (blank($state)) {
                             $set('nama_perangkat', null);
                             $set('nomor_inventaris', null);
-                            $set('tipe', null);
                             $set('kondisi_id', null);
                             $set('lokasi_asal_id', null);
                             return;
@@ -41,7 +40,6 @@ class MutasiForm
                         if ($perangkat) {
                             $set('nama_perangkat', $perangkat->nama_perangkat);
                             $set('nomor_inventaris', $perangkat->nomor_inventaris);
-                            $set('tipe', $perangkat->tipe);
                             $set('kondisi_id', $perangkat->kondisi_id);
                             $set('lokasi_asal_id', $perangkat->lokasi_id);
                         }
@@ -57,10 +55,6 @@ class MutasiForm
                     ->required()
                     ->disabled()
                     ->dehydrated(),
-                TextInput::make('tipe')
-                    ->label('Tipe')
-                    ->nullable(),
-
                 Select::make('kondisi_id')
                     ->label('Kondisi')
                     ->relationship('kondisi', 'nama_kondisi')

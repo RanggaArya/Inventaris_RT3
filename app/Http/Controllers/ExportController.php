@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Filament\Exports\PerangkatResumeExport;
 use App\Filament\Exports\MutasiResumeExport;
 use App\Filament\Exports\PerangkatAllExport;
+use App\Filament\Exports\KalibrasiAllExport;
 use App\Models\Perangkat;
 use App\Models\Mutasi;
 use Illuminate\Support\Facades\DB;
@@ -392,7 +393,6 @@ class ExportController extends Controller
             'mutasis.id',
             'mutasis.nomor_inventaris',
             'mutasis.nama_perangkat',
-            'mutasis.tipe',
             'kondisis.nama_kondisi as kondisi',
             'asal.nama_lokasi as lokasi_asal',
             'tujuan.nama_lokasi as lokasi_tujuan',

@@ -20,7 +20,6 @@ return new class extends Migration
 
             $table->string('nama_perangkat')->nullable();
             $table->string('nomor_inventaris')->nullable();
-            $table->string('tipe')->nullable();
             
             $table->foreignId('lokasi_asal_id')->nullable()->constrained('lokasis')->onDelete('set null');
             $table->foreignId('kondisi_id')->nullable()->constrained('kondisis')->onDelete('set null');

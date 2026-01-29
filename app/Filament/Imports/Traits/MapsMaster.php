@@ -20,49 +20,37 @@ trait MapsMaster
     
     // MAPPING: Excel Header (lowercase) => Model Attribute Database
     protected array $COLUMN_ALIASES = [
-        // Identitas & Nomor
         'no_inventaris'    => 'nomor_inventaris',
         'nomor_asset'      => 'nomor_inventaris',
         'nomor_inventaris' => 'nomor_inventaris',
-        
-        // Nama & Kategori
-        'nama_alat'        => 'nama_perangkat', // Excel: Nama Alat
+        'nama_alat'        => 'nama_perangkat',
         'nama_barang'      => 'nama_perangkat',
         'nama_perangkat'   => 'nama_perangkat',
-        
         'jenis'            => 'jenis', 
-        'kategori'         => 'kategori_excel',      // Helper utk cari ID
-        'kode_kategori'    => 'kode_kategori_excel', // Helper utk cari ID
-        
-        // Spesifikasi (Sesuai Model Baru)
-        'merek_alat'       => 'merek_alat', // Excel: Merek Alat -> DB: merek_alat
+        'kategori'         => 'kategori_excel',      
+        'kode_kategori'    => 'kode_kategori_excel', 
+        'merek_alat'       => 'merek_alat', 
         'merek'            => 'merek_alat',
-        'tipe'             => 'merek_alat', // Jaga-jaga kalau ada header 'tipe'
-        
-        // Kondisi & Lokasi
+        'tipe'             => 'merek_alat', 
         'kondisi_alat'     => 'kondisi',
         'kondisi'          => 'kondisi',
         'lokasi'           => 'lokasi',
-        
-        // Pengadaan & Keuangan
-        'tanggal_pengadaan'=> 'tanggal_pengadaan', // Excel: Tanggal Pengadaan -> DB: tanggal_pengadaan
+        'tanggal_pengadaan'=> 'tanggal_pengadaan', 
         'tahun_pengadaan'  => 'tahun_pengadaan',
-        'sumber_pendanaan' => 'sumber_pendanaan', // Excel: Sumber Pendanaan -> DB: sumber_pendanaan
+        'sumber_pendanaan' => 'sumber_pendanaan', 
         'sumber'           => 'sumber_pendanaan',
-        'harga_beli'       => 'harga_beli',       // Excel: Harga Beli -> DB: harga_beli
+        'harga_beli'       => 'harga_beli',       
         'harga'            => 'harga_beli',
-        
-        // Keterangan
-        'keterangan'       => 'keterangan',       // Excel: Keterangan -> DB: keterangan
+        'keterangan'       => 'keterangan',       
         'catatan'          => 'keterangan',
     ];
 
     protected function bootMasterMaps(): void
     {
+        // Load data ke memori untuk mempercepat proses (Caching sederhana)
         $this->lokasiMap  = Lokasi::pluck('id', 'nama_lokasi')->all();
         $this->statusMap  = Status::pluck('id', 'nama_status')->all();
         $this->kondisiMap = Kondisi::pluck('id', 'nama_kondisi')->all();
-
         $this->kategoriMap = Kategori::pluck('id', 'nama_kategori')->all();
 
         $this->kategoriCodeMap = [];
@@ -81,23 +69,26 @@ trait MapsMaster
 
     // --- HELPER FUNCTIONS ---
 
+    // [PERBAIKAN UTAMA] Gunakan firstOrCreate agar tidak error Duplicate Entry
     protected function getOrCreateId(array &$map, string $modelClass, string $column, $value): ?int
     {
         $name = trim((string)($value ?? ''));
         if ($name === '') return null;
 
         $lookup = mb_strtolower($name);
+        
+        // 1. Cek di Cache Array (Memory)
         if (isset($map[$lookup])) return (int)$map[$lookup];
 
-        $id = $modelClass::whereRaw("LOWER($column)=?", [$lookup])->value('id');
-        if ($id) {
-            $map[$lookup] = (int)$id;
-            return (int)$id;
-        }
+        // 2. Cek/Buat di Database (Aman dari duplikat)
+        // firstOrCreate: Cari berdasarkan $column, jika tidak ada create baru.
+        $record = $modelClass::firstOrCreate(
+            [$column => $name] 
+        );
 
-        $created = $modelClass::create([$column => $name]);
-        $map[$lookup] = (int)$created->id;
-        return (int)$created->id;
+        // Simpan balik ke map memory agar request berikutnya lebih cepat
+        $map[$lookup] = (int)$record->id;
+        return (int)$record->id;
     }
 
     protected function parseTanggal($value): ?string
@@ -137,86 +128,83 @@ trait MapsMaster
         return preg_replace('/\s+/u', ' ', mb_strtolower(trim($name)));
     }
 
-    // --- KATEGORI RESOLVER (Prioritas Kode Kategori) ---
-    // Update parameter untuk menerima Nama Kategori dari Excel
+    // --- KATEGORI RESOLVER (FIXED DUPLICATE ISSUE) ---
+    
     protected function resolveKategoriByKodeAndName(?string $kodeExcel, ?string $namaKategoriExcel, string $namaPerangkat): ?Kategori
     {
-        // 1. Prioritas TERTINGGI: Kode Kategori dari Excel (Jika ada)
+        // 1. Prioritas TERTINGGI: Kode Kategori dari Excel
         if (!empty($kodeExcel)) {
             $cleanKode = $this->normalizeKategoriKode($kodeExcel);
             
-            // Cek by Kode di Map
+            // Cek by Kode di Map Memory
             if ($cleanKode && isset($this->kategoriCodeMap[$cleanKode])) {
                  return Kategori::find($this->kategoriCodeMap[$cleanKode]);
             }
             
-            // Jika Kode ada tapi belum ada di DB, Create Baru berdasarkan Kode & Nama Kategori (atau fallback ke Nama Perangkat)
+            // Cek/Buat berdasarkan Kode
             if ($cleanKode) {
+                // Tentukan nama: Prioritas dari kolom Kategori Excel -> fallback Nama Perangkat
                 $namaFinal = !empty($namaKategoriExcel) ? trim($namaKategoriExcel) : $namaPerangkat;
+
+                // [FIX] Gunakan updateOrCreate atau firstOrCreate by Kode
+                $kategori = Kategori::firstOrCreate(
+                    ['kode_kategori' => $cleanKode], // Kunci pencarian (Unique Kode)
+                    ['nama_kategori' => $namaFinal]  // Data yg diisi jika baru
+                );
                 
-                $created = Kategori::create([
-                    'nama_kategori' => $namaFinal,
-                    'kode_kategori' => $cleanKode,
-                ]);
-                
-                $this->kategoriMap[mb_strtolower($created->nama_kategori)] = (int)$created->id;
-                $this->kategoriCodeMap[$created->kode_kategori] = (int)$created->id;
-                return $created;
+                $this->updateKategoriCache($kategori);
+                return $kategori;
             }
         }
 
-        // 2. Prioritas KEDUA: Nama Kategori dari Excel (Jika ada teks di kolom Kategori)
+        // 2. Prioritas KEDUA: Nama Kategori dari Excel
         if (!empty($namaKategoriExcel)) {
-            $lookup = mb_strtolower(trim($namaKategoriExcel));
+            $namaFinal = trim($namaKategoriExcel);
+            $lookup = mb_strtolower($namaFinal);
             
-            // Cek di Cache Map
             if (isset($this->kategoriMap[$lookup])) {
                 return Kategori::find($this->kategoriMap[$lookup]);
             }
 
-            // Cek di DB (Raw Query untuk case insensitive)
-            $kategori = Kategori::whereRaw('LOWER(nama_kategori)=?', [$lookup])->first();
-            if ($kategori) {
-                $this->kategoriMap[$lookup] = (int)$kategori->id;
-                return $kategori;
-            }
+            // [FIX] Gunakan firstOrCreate berdasarkan Nama
+            // Jika kode otomatis diperlukan, kita generate di dalam array value
+            $kategori = Kategori::firstOrCreate(
+                ['nama_kategori' => $namaFinal], // Kunci pencarian (Unique Nama)
+                ['kode_kategori' => $this->nextKategoriKode()] // Generate kode jika baru
+            );
 
-            // Jika tidak ada, Buat Baru dengan Kode Otomatis
-            $kodeBaru = $this->nextKategoriKode();
-            $created = Kategori::create([
-                'nama_kategori' => trim($namaKategoriExcel), // Pakai nama dari Excel
-                'kode_kategori' => $kodeBaru,
-            ]);
-            
-            $this->kategoriMap[$lookup] = (int)$created->id;
-            $this->kategoriCodeMap[$created->kode_kategori] = (int)$created->id;
-            return $created;
+            $this->updateKategoriCache($kategori);
+            return $kategori;
         }
 
-        // 3. Prioritas TERAKHIR: Fallback (Tebak dari Nama Perangkat jika Kategori Excel Kosong)
+        // 3. Prioritas TERAKHIR: Fallback (Tebak dari Nama Perangkat)
+        // Kita anggap Nama Perangkat = Nama Kategori jika kategori kosong
         return $this->resolveKategoriByNamaPerangkat($namaPerangkat);
     }
 
     protected function resolveKategoriByNamaPerangkat(string $namaPerangkat): ?Kategori
     {
-        $lookup = mb_strtolower($namaPerangkat);
+        $lookup = mb_strtolower(trim($namaPerangkat));
         if (isset($this->kategoriMap[$lookup])) return Kategori::find($this->kategoriMap[$lookup]);
         
-        $kategori = Kategori::whereRaw('LOWER(nama_kategori)=?', [$lookup])->first();
-        if ($kategori) {
-             $this->kategoriMap[$lookup] = (int)$kategori->id;
-             if ($kategori->kode_kategori) $this->kategoriCodeMap[$kategori->kode_kategori] = (int)$kategori->id;
-             return $kategori;
-        }
+        // [FIX] Gunakan firstOrCreate
+        $kategori = Kategori::firstOrCreate(
+            ['nama_kategori' => trim($namaPerangkat)],
+            ['kode_kategori' => $this->nextKategoriKode()]
+        );
 
-        $kodeBaru = $this->nextKategoriKode();
-        $created = Kategori::create([
-            'nama_kategori' => $namaPerangkat,
-            'kode_kategori' => $kodeBaru,
-        ]);
-        $this->kategoriMap[mb_strtolower($created->nama_kategori)] = (int)$created->id;
-        $this->kategoriCodeMap[$created->kode_kategori] = (int)$created->id;
-        return $created;
+        $this->updateKategoriCache($kategori);
+        return $kategori;
+    }
+
+    // Helper untuk update cache setelah create baru
+    protected function updateKategoriCache(Kategori $kategori): void
+    {
+        $this->kategoriMap[mb_strtolower($kategori->nama_kategori)] = (int)$kategori->id;
+        if ($kategori->kode_kategori) {
+            $key = $this->normalizeKategoriKode($kategori->kode_kategori);
+            if ($key) $this->kategoriCodeMap[$key] = (int)$kategori->id;
+        }
     }
 
     protected function normalizeKategoriKode(?string $kode): ?string
@@ -228,8 +216,12 @@ trait MapsMaster
 
     protected function nextKategoriKode(): string
     {
-        $max = Kategori::query()->max('kode_kategori');
-        $n = (int) preg_replace('/\D+/', '', (string)$max);
+        // Ambil max kode yang ada untuk auto increment logic
+        $max = Kategori::query()
+            ->selectRaw('MAX(CAST(kode_kategori AS UNSIGNED)) as max_code')
+            ->value('max_code');
+            
+        $n = (int) $max;
         return str_pad($n + 1, 3, '0', STR_PAD_LEFT);
     }
 
@@ -238,18 +230,16 @@ trait MapsMaster
         $key = mb_strtolower(trim($nama));
         if ($key === '') return null;
 
-        // Cek dulu apakah sudah ada di Cache/DB
         if (isset($this->jenisMap[$key])) {
             return Jenis::find($this->jenisMap[$key]);
         }
 
-        // --- ATURAN MAPPING MANUAL (SESUAI REQUEST) ---
-        // Format: [keyword => ['prefix', 'kode']]
+        // Mapping Manual
         $rules = [
             'elektronik'             => ['B', '02.4'],
             'kelistrikan'            => ['B', '02.4'],
             'perabotan'              => ['B', '02.6'],
-            'meubel'                 => ['B', '02.6'], // Alias untuk perabotan
+            'meubel'                 => ['B', '02.6'],
             'furniture'              => ['B', '02.6'],
             'alat keselamatan kerja' => ['C', '03.2'],
             'k3'                     => ['C', '03.2'],
@@ -257,10 +247,9 @@ trait MapsMaster
             'alkes'                  => ['A', '01'],
         ];
 
-        $prefix = 'B';      // Default
-        $kode   = '02.4';   // Default (misal Hardware/Umum)
+        $prefix = 'B';
+        $kode   = '02.4';
 
-        // Cek apakah nama mengandung keyword di atas
         foreach ($rules as $keyword => $config) {
             if (str_contains($key, $keyword)) {
                 $prefix = $config[0];
@@ -269,9 +258,9 @@ trait MapsMaster
             }
         }
 
-        // Create atau Find dengan Prefix & Kode yang sudah ditentukan
+        // [FIX] Gunakan firstOrCreate
         $jenis = Jenis::firstOrCreate(
-            ['nama_jenis' => $nama], // Cari berdasarkan nama
+            ['nama_jenis' => $nama],
             [
                 'prefix'     => $prefix,
                 'kode_jenis' => $kode
@@ -282,7 +271,6 @@ trait MapsMaster
         return $jenis;
     }
     
-    // Helper untuk parsing Nomor Inventaris (jika perlu resolve Jenis dari NI)
     protected function parseNomorInventaris(string $ni): ?array
     {
         $re = '/^([A-Z])\.(\d{2}\.\d)\.(\d{3})\.(\d+)\.(\d{4})$/';
@@ -299,6 +287,7 @@ trait MapsMaster
 
     protected function resolveOrUpsertJenisFromNI(string $prefix, string $kodeJenis): int
     {
+        // [FIX] firstOrCreate
         $jenis = Jenis::firstOrCreate(
             ['kode_jenis' => $kodeJenis],
             ['prefix' => $prefix, 'nama_jenis' => 'Hardware']
