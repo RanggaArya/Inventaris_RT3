@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AlatRumahTanggas;
 
+use App\Filament\Resources\AlatRumahTanggas\Pages;
 use App\Filament\Resources\AlatRumahTanggas\Pages\CreateAlatRumahTangga;
 use App\Filament\Resources\AlatRumahTanggas\Pages\EditAlatRumahTangga;
 use App\Filament\Resources\AlatRumahTanggas\Pages\ListAlatRumahTanggas;
@@ -64,6 +65,7 @@ class AlatRumahTanggaResource extends Resource
         return [
             'index' => ListAlatRumahTanggas::route('/'),
             'create' => CreateAlatRumahTangga::route('/create'),
+            'resume' => Pages\ResumeAlatRumahTangga::route('/resume'),
             'view' => ViewAlatRumahTangga::route('/{record}'),
             'edit' => EditAlatRumahTangga::route('/{record}/edit'),
         ];

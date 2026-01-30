@@ -102,6 +102,12 @@ unset($__defined_vars, $__key, $__value); ?>
 
         <?php echo e(filament()->getTheme()->getHtml()); ?>
 
+        <?php echo e(filament()->getFontPreloadHtml()); ?>
+
+        <?php echo e(filament()->getMonoFontPreloadHtml()); ?>
+
+        <?php echo e(filament()->getSerifFontPreloadHtml()); ?>
+
         <?php echo e(filament()->getFontHtml()); ?>
 
         <?php echo e(filament()->getMonoFontHtml()); ?>

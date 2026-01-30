@@ -17,6 +17,11 @@ class ListAlatRumahTanggas extends ListRecords
     {
         $user = Auth::user();
         return [
+            Action::make('resume')
+            ->label('Resume Perangkat')
+            ->icon('heroicon-o-presentation-chart-line') // Icon grafik
+            ->color('info') // Warna biru (info) atau gray
+            ->url(AlatRumahTanggaResource::getUrl('resume')),
             CreateAction::make(),
             Action::make('export_excel')
             ->label('Download Excel')
